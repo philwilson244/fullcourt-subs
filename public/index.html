@@ -165,6 +165,65 @@
     box-shadow: 0 0 12px rgba(255,107,43,0.2);
   }
 
+  /* ── Header Menu (hamburger) ── */
+  .header-menu-wrap { position: relative; }
+
+  .menu-trigger {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border-glow);
+    border-radius: 6px;
+    color: var(--cyan);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .menu-trigger:active { background: var(--cyan-dim); }
+
+  .header-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 160px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-glow);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 25;
+  }
+  .header-menu.open { display: block; }
+
+  .menu-item {
+    display: block; width: 100%;
+    padding: 14px 18px;
+    background: none; border: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-1);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.12s;
+    border-bottom: 1px solid var(--border);
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:active { background: var(--cyan-dim); }
+  .menu-item.menu-danger { color: var(--red); }
+  .menu-item.menu-danger:active { background: rgba(255,59,74,0.1); }
+
+  .menu-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 24;
+  }
+  .menu-backdrop.open { display: block; }
+
   /* ═══════════════════════════════
      SETUP SCREEN
      ═══════════════════════════════ */
@@ -1867,6 +1926,9 @@
     rotationScreen.style.display = 'none';
     bottomBar.style.display = 'none';
     headerActions.innerHTML = '';
+    // Clean up any menu backdrop
+    var old = document.querySelector('.menu-backdrop');
+    if (old) old.remove();
   }
 
   // ══════════════════════════════
@@ -2082,23 +2144,52 @@
     bottomBar.style.display = 'block';
     updateLogoUI();
 
-    var historyBtn = document.createElement('button');
-    historyBtn.className = 'pill-btn';
-    historyBtn.textContent = 'HISTORY';
-    historyBtn.addEventListener('click', openHistoryModal);
-    headerActions.appendChild(historyBtn);
+    // Hamburger menu
+    var wrap = document.createElement('div');
+    wrap.className = 'header-menu-wrap';
 
-    var editBtn = document.createElement('button');
-    editBtn.className = 'pill-btn';
-    editBtn.textContent = 'ROSTER';
-    editBtn.addEventListener('click', openEditModal);
-    headerActions.appendChild(editBtn);
+    var trigger = document.createElement('button');
+    trigger.className = 'menu-trigger';
+    trigger.innerHTML = '&#8942;'; // vertical ellipsis ⋮
 
-    var resetBtn = document.createElement('button');
-    resetBtn.className = 'pill-btn';
-    resetBtn.textContent = 'RESET';
-    resetBtn.addEventListener('click', openResetModal);
-    headerActions.appendChild(resetBtn);
+    var menu = document.createElement('div');
+    menu.className = 'header-menu';
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'menu-backdrop';
+
+    function closeMenu() {
+      menu.classList.remove('open');
+      backdrop.classList.remove('open');
+    }
+
+    function makeItem(label, action, danger) {
+      var btn = document.createElement('button');
+      btn.className = 'menu-item' + (danger ? ' menu-danger' : '');
+      btn.textContent = label;
+      btn.addEventListener('click', function() {
+        closeMenu();
+        action();
+      });
+      return btn;
+    }
+
+    menu.appendChild(makeItem('History', openHistoryModal));
+    menu.appendChild(makeItem('Roster', openEditModal));
+    menu.appendChild(makeItem('Reset', openResetModal, true));
+
+    trigger.addEventListener('click', function() {
+      var isOpen = menu.classList.contains('open');
+      if (isOpen) { closeMenu(); }
+      else { menu.classList.add('open'); backdrop.classList.add('open'); }
+    });
+
+    backdrop.addEventListener('click', closeMenu);
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(menu);
+    headerActions.appendChild(wrap);
+    document.body.appendChild(backdrop);
 
     render();
   }
