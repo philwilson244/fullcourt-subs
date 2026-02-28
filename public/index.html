@@ -2217,9 +2217,6 @@
     rotationScreen.style.display = 'none';
     bottomBar.style.display = 'none';
     headerActions.innerHTML = '';
-    // Clean up any menu backdrop
-    var old = document.querySelector('.menu-backdrop');
-    if (old) old.remove();
   }
 
   // ══════════════════════════════
@@ -2268,10 +2265,20 @@
     attendanceScreen.style.display = 'block';
     updateLogoUI();
 
-    // Initialize all as present
-    attendance = {};
-    for (var i = 0; i < roster.length; i++) {
-      attendance[roster[i]] = true;
+    if (midGameReturn) {
+      // Coming back mid-game: keep current attendance, mark active players present
+      attendance = {};
+      for (var i = 0; i < roster.length; i++) {
+        attendance[roster[i]] = activeRoster.indexOf(roster[i]) !== -1;
+      }
+      attGo.textContent = 'RESUME GAME';
+    } else {
+      // Fresh start: everyone present
+      attendance = {};
+      for (var i = 0; i < roster.length; i++) {
+        attendance[roster[i]] = true;
+      }
+      attGo.textContent = 'START GAME';
     }
     renderAttendance();
   }
@@ -2325,6 +2332,8 @@
     }
   }
 
+  var midGameReturn = false;
+
   function launchFromAttendance() {
     activeRoster = [];
     for (var i = 0; i < roster.length; i++) {
@@ -2333,9 +2342,17 @@
     if (activeRoster.length < 5) return; // button shouldn't work
 
     groups = buildGroups(activeRoster);
-    currentIndex = 0;
-    totalSubs = 0;
-    subHistory = [];
+
+    if (midGameReturn) {
+      // Coming back mid-game: keep sub count, just clamp currentIndex
+      midGameReturn = false;
+      if (currentIndex >= groups.length) currentIndex = 0;
+    } else {
+      // Fresh game start
+      currentIndex = 0;
+      totalSubs = 0;
+      subHistory = [];
+    }
     showRotation();
   }
 
@@ -2468,6 +2485,10 @@
     }
 
     menu.appendChild(makeItem('History', openHistoryModal));
+    menu.appendChild(makeItem('Attendance', function() {
+      midGameReturn = true;
+      showAttendance();
+    }));
     menu.appendChild(makeItem('Roster', openEditModal));
     menu.appendChild(makeItem('Reset', openResetModal, true));
 
@@ -2481,8 +2502,8 @@
 
     wrap.appendChild(trigger);
     wrap.appendChild(menu);
+    wrap.appendChild(backdrop);
     headerActions.appendChild(wrap);
-    document.body.appendChild(backdrop);
 
     render();
   }
