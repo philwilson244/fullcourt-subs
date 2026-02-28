@@ -1,0 +1,11 @@
+{
+  "name": "fullcourt-subs",
+  "version": "1.0.0",
+  "description": "Basketball substitution rotation app",
+  "scripts": {
+    "start": "serve public -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
