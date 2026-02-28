@@ -224,6 +224,80 @@
   }
   .menu-backdrop.open { display: block; }
 
+  /* ── Team Code Section ── */
+  .team-code-section {
+    margin-bottom: 28px;
+    padding: 20px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .team-code-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 2.5px; color: var(--text-2);
+    margin-bottom: 14px; text-transform: uppercase;
+  }
+  .team-code-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem; font-weight: 900;
+    letter-spacing: 8px; color: var(--cyan);
+    text-shadow: 0 0 20px rgba(255,107,43,0.4);
+    margin-bottom: 12px;
+  }
+  .team-code-actions { display: flex; gap: 8px; justify-content: center; }
+  .code-btn {
+    padding: 10px 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    border: none; border-radius: 5px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .code-btn:active { transform: scale(0.97); }
+  .code-btn-primary {
+    background: var(--cyan); color: var(--bg);
+    box-shadow: 0 0 16px rgba(255,107,43,0.2);
+  }
+  .code-btn-secondary {
+    background: var(--surface-3); color: var(--text-1);
+    border: 1px solid var(--border-glow);
+  }
+  .code-btn-danger {
+    background: none; color: var(--text-3);
+    font-size: 0.45rem; padding: 6px 12px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .code-join-row {
+    display: flex; gap: 8px; justify-content: center;
+    margin-top: 12px;
+  }
+  .code-join-row.hidden { display: none; }
+  .code-input {
+    width: 140px; padding: 10px 12px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; font-weight: 800;
+    letter-spacing: 4px; text-transform: uppercase;
+    text-align: center;
+    background: var(--surface-2); color: var(--text-1);
+    border: 1px solid var(--border-glow); border-radius: 5px;
+    outline: none;
+  }
+  .code-input:focus { border-color: var(--cyan); box-shadow: 0 0 12px rgba(255,107,43,0.15); }
+  .code-input::placeholder { color: var(--text-3); letter-spacing: 2px; font-size: 0.6rem; }
+  .code-error {
+    font-size: 0.7rem; font-weight: 600;
+    color: var(--red); margin-top: 8px;
+  }
+  .code-status {
+    font-size: 0.6rem; font-weight: 600;
+    color: var(--text-3); margin-top: 6px; letter-spacing: 0.5px;
+  }
+  .code-status.syncing { color: var(--cyan); }
+  /* Connected state */
+  .team-code-connected .team-code-value { margin-bottom: 8px; }
+
   /* ═══════════════════════════════
      SETUP SCREEN
      ═══════════════════════════════ */
@@ -1406,6 +1480,7 @@
     font-weight: 600;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -1436,6 +1511,31 @@
     <button class="logo-upload-remove" id="logo-upload-remove" type="button">REMOVE</button>
   </div>
   <input type="file" id="logo-file-input" accept="image/*" style="display:none">
+
+  <div class="team-code-section" id="team-code-section">
+    <div class="team-code-label">TEAM SYNC</div>
+    <!-- Disconnected state -->
+    <div id="code-disconnected">
+      <div class="team-code-actions">
+        <button class="code-btn code-btn-primary" id="code-create-btn" type="button">CREATE TEAM</button>
+        <button class="code-btn code-btn-secondary" id="code-join-toggle" type="button">JOIN TEAM</button>
+      </div>
+      <div class="code-join-row hidden" id="code-join-row">
+        <input type="text" class="code-input" id="code-join-input" maxlength="6" placeholder="CODE" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button class="code-btn code-btn-primary" id="code-join-btn" type="button">GO</button>
+      </div>
+      <div class="code-error" id="code-error"></div>
+    </div>
+    <!-- Connected state -->
+    <div id="code-connected" style="display:none">
+      <div class="team-code-value" id="code-display"></div>
+      <div class="team-code-actions">
+        <button class="code-btn code-btn-secondary" id="code-copy-btn" type="button">COPY CODE</button>
+        <button class="code-btn code-btn-danger" id="code-disconnect-btn" type="button">Disconnect</button>
+      </div>
+      <div class="code-status" id="code-status"></div>
+    </div>
+  </div>
 
   <div class="team-fields">
     <div class="team-field">
@@ -1626,6 +1726,13 @@
   var STORAGE_TEAM = 'fullcourt_team';
   var STORAGE_LOGO = 'fullcourt_logo';
   var STORAGE_GAME_FORMAT = 'fullcourt_game_format';
+  var STORAGE_TEAM_CODE = 'fullcourt_team_code';
+
+  // Supabase
+  var SUPABASE_URL = 'https://tniyivhikkoxcmtzqoqw.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuaXlpdmhpa2tveGNtdHpxb3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwOTY3MTgsImV4cCI6MjA3OTY3MjcxOH0.QyjtnvNTOlE_vRk-l1NUoWX5bh6ew-yPSH3i2VhyoNY';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   var GROUP_SIZE = 5;
   var MIN_SLOTS = 5;
   var MAX_PLAYERS = 15;
@@ -1690,6 +1797,18 @@
   var historyList = document.getElementById('history-list');
   var historyEmpty = document.getElementById('history-empty');
   var historyCloseBtn = document.getElementById('history-close');
+  var codeDisconnected = document.getElementById('code-disconnected');
+  var codeConnected = document.getElementById('code-connected');
+  var codeCreateBtn = document.getElementById('code-create-btn');
+  var codeJoinToggle = document.getElementById('code-join-toggle');
+  var codeJoinRow = document.getElementById('code-join-row');
+  var codeJoinInput = document.getElementById('code-join-input');
+  var codeJoinBtn = document.getElementById('code-join-btn');
+  var codeError = document.getElementById('code-error');
+  var codeDisplay = document.getElementById('code-display');
+  var codeCopyBtn = document.getElementById('code-copy-btn');
+  var codeDisconnectBtn = document.getElementById('code-disconnect-btn');
+  var codeStatus = document.getElementById('code-status');
 
   // State
   var roster = [];       // full saved roster
@@ -1705,6 +1824,175 @@
   var numQuarters = 4;
   var subsPerQuarter = 1;
   var subHistory = [];
+  var teamCode = '';
+
+  // ══════════════════════════════
+  // SUPABASE SYNC
+  // ══════════════════════════════
+
+  function generateTeamCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I confusion
+    var code = '';
+    for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  }
+
+  function updateCodeUI() {
+    if (teamCode) {
+      codeDisconnected.style.display = 'none';
+      codeConnected.style.display = '';
+      codeDisplay.textContent = teamCode;
+      codeError.textContent = '';
+      codeJoinRow.classList.add('hidden');
+    } else {
+      codeDisconnected.style.display = '';
+      codeConnected.style.display = 'none';
+      codeJoinInput.value = '';
+      codeError.textContent = '';
+      codeStatus.textContent = '';
+      codeJoinRow.classList.add('hidden');
+    }
+  }
+
+  function setCodeStatus(msg, syncing) {
+    codeStatus.textContent = msg;
+    codeStatus.className = 'code-status' + (syncing ? ' syncing' : '');
+  }
+
+  function syncToSupabase() {
+    if (!teamCode) return;
+    setCodeStatus('Syncing...', true);
+    sb.from('teams').update({
+      team_name: teamName,
+      team_subtitle: teamSubtitle,
+      roster: roster,
+      game_format: { quarters: numQuarters, subsPerQuarter: subsPerQuarter },
+      logo: teamLogo,
+      updated_at: new Date().toISOString()
+    }).eq('team_code', teamCode).then(function(res) {
+      if (res.error) { setCodeStatus('Sync failed', false); }
+      else { setCodeStatus('Synced', false); setTimeout(function() { setCodeStatus('', false); }, 2000); }
+    });
+  }
+
+  function syncFromSupabase(callback) {
+    if (!teamCode) { if (callback) callback(false); return; }
+    sb.from('teams').select('*').eq('team_code', teamCode).single().then(function(res) {
+      if (res.error || !res.data) {
+        // Team was deleted or code is invalid — clear local code
+        teamCode = '';
+        localStorage.removeItem(STORAGE_TEAM_CODE);
+        updateCodeUI();
+        if (callback) callback(false);
+        return;
+      }
+      var d = res.data;
+      teamName = d.team_name || '';
+      teamSubtitle = d.team_subtitle || '';
+      teamLogo = d.logo || '';
+      roster = Array.isArray(d.roster) ? d.roster : [];
+      if (d.game_format) {
+        if (d.game_format.quarters >= 1 && d.game_format.quarters <= 8) numQuarters = d.game_format.quarters;
+        if (d.game_format.subsPerQuarter >= 1 && d.game_format.subsPerQuarter <= 5) subsPerQuarter = d.game_format.subsPerQuarter;
+      }
+      // Cache locally
+      localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
+      localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
+      localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter }));
+      if (teamLogo) localStorage.setItem(STORAGE_LOGO, teamLogo);
+      else localStorage.removeItem(STORAGE_LOGO);
+      if (callback) callback(true);
+    });
+  }
+
+  function createTeam() {
+    var code = generateTeamCode();
+    codeError.textContent = '';
+    codeCreateBtn.textContent = 'CREATING...';
+    codeCreateBtn.disabled = true;
+
+    sb.from('teams').insert({
+      team_code: code,
+      team_name: teamName,
+      team_subtitle: teamSubtitle,
+      roster: roster,
+      game_format: { quarters: numQuarters, subsPerQuarter: subsPerQuarter },
+      logo: teamLogo
+    }).then(function(res) {
+      codeCreateBtn.textContent = 'CREATE TEAM';
+      codeCreateBtn.disabled = false;
+      if (res.error) {
+        codeError.textContent = 'Failed to create. Try again.';
+        return;
+      }
+      teamCode = code;
+      localStorage.setItem(STORAGE_TEAM_CODE, teamCode);
+      updateCodeUI();
+    });
+  }
+
+  function joinTeam() {
+    var code = codeJoinInput.value.trim().toUpperCase();
+    if (code.length !== 6) { codeError.textContent = 'Enter a 6-character code.'; return; }
+    codeError.textContent = '';
+    codeJoinBtn.textContent = '...';
+    codeJoinBtn.disabled = true;
+
+    sb.from('teams').select('*').eq('team_code', code).single().then(function(res) {
+      codeJoinBtn.textContent = 'GO';
+      codeJoinBtn.disabled = false;
+      if (res.error || !res.data) {
+        codeError.textContent = 'Team not found. Check the code.';
+        return;
+      }
+      teamCode = code;
+      localStorage.setItem(STORAGE_TEAM_CODE, teamCode);
+
+      var d = res.data;
+      teamName = d.team_name || '';
+      teamSubtitle = d.team_subtitle || '';
+      teamLogo = d.logo || '';
+      roster = Array.isArray(d.roster) ? d.roster : [];
+      if (d.game_format) {
+        if (d.game_format.quarters >= 1 && d.game_format.quarters <= 8) numQuarters = d.game_format.quarters;
+        if (d.game_format.subsPerQuarter >= 1 && d.game_format.subsPerQuarter <= 5) subsPerQuarter = d.game_format.subsPerQuarter;
+      }
+      // Cache locally
+      localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
+      localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
+      localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter }));
+      if (teamLogo) localStorage.setItem(STORAGE_LOGO, teamLogo);
+      else localStorage.removeItem(STORAGE_LOGO);
+
+      updateCodeUI();
+      // Refresh setup screen with new data
+      showSetup();
+    });
+  }
+
+  function disconnectTeam() {
+    teamCode = '';
+    localStorage.removeItem(STORAGE_TEAM_CODE);
+    updateCodeUI();
+  }
+
+  // Team code event listeners
+  codeCreateBtn.addEventListener('click', createTeam);
+  codeJoinToggle.addEventListener('click', function() {
+    codeJoinRow.classList.toggle('hidden');
+    if (!codeJoinRow.classList.contains('hidden')) codeJoinInput.focus();
+  });
+  codeJoinBtn.addEventListener('click', joinTeam);
+  codeJoinInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') joinTeam(); });
+  codeCopyBtn.addEventListener('click', function() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(teamCode).then(function() {
+        codeCopyBtn.textContent = 'COPIED!';
+        setTimeout(function() { codeCopyBtn.textContent = 'COPY CODE'; }, 1500);
+      });
+    }
+  });
+  codeDisconnectBtn.addEventListener('click', disconnectTeam);
 
   // ══════════════════════════════
   // SLOT MANAGEMENT (Setup Screen)
@@ -1823,10 +2111,12 @@
 
   function saveTeam() {
     localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
+    syncToSupabase();
   }
 
   function saveRoster() {
     localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
+    syncToSupabase();
   }
 
   function saveLogo() {
@@ -1835,6 +2125,7 @@
     } else {
       localStorage.removeItem(STORAGE_LOGO);
     }
+    syncToSupabase();
   }
 
   function updateLogoUI() {
@@ -1954,6 +2245,7 @@
 
   function saveGameFormat() {
     localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter }));
+    syncToSupabase();
   }
 
   function showSetup() {
@@ -1964,6 +2256,7 @@
     setupTeamSubtitle.value = teamSubtitle;
     updateLogoUI();
     updateFormatUI();
+    updateCodeUI();
   }
 
   // ══════════════════════════════
@@ -2255,10 +2548,12 @@
     numQuarters = 4;
     subsPerQuarter = 1;
     subHistory = [];
+    teamCode = '';
     localStorage.removeItem(STORAGE_ROSTER);
     localStorage.removeItem(STORAGE_TEAM);
     localStorage.removeItem(STORAGE_LOGO);
     localStorage.removeItem(STORAGE_GAME_FORMAT);
+    localStorage.removeItem(STORAGE_TEAM_CODE);
     closeResetModal();
     showSetup();
   }
@@ -2409,43 +2704,65 @@
   // INIT
   // ══════════════════════════════
 
-  var savedTeam = localStorage.getItem(STORAGE_TEAM);
-  if (savedTeam) {
-    try {
-      var t = JSON.parse(savedTeam);
-      teamName = t.name || '';
-      teamSubtitle = t.subtitle || '';
-    } catch (e) {}
+  function loadLocalState() {
+    var savedTeam = localStorage.getItem(STORAGE_TEAM);
+    if (savedTeam) {
+      try {
+        var t = JSON.parse(savedTeam);
+        teamName = t.name || '';
+        teamSubtitle = t.subtitle || '';
+      } catch (e) {}
+    }
+
+    var savedLogo = localStorage.getItem(STORAGE_LOGO);
+    if (savedLogo) {
+      teamLogo = savedLogo;
+    }
+
+    var savedFormat = localStorage.getItem(STORAGE_GAME_FORMAT);
+    if (savedFormat) {
+      try {
+        var f = JSON.parse(savedFormat);
+        if (f.quarters >= 1 && f.quarters <= 8) numQuarters = f.quarters;
+        if (f.subsPerQuarter >= 1 && f.subsPerQuarter <= 5) subsPerQuarter = f.subsPerQuarter;
+      } catch (e) {}
+    }
+
+    var savedRoster = localStorage.getItem(STORAGE_ROSTER);
+    if (savedRoster) {
+      try {
+        var parsed = JSON.parse(savedRoster);
+        if (Array.isArray(parsed) && parsed.length >= 5) {
+          roster = parsed;
+          return true; // has roster
+        }
+      } catch (e) {}
+    }
+    return false; // no roster
   }
 
-  var savedLogo = localStorage.getItem(STORAGE_LOGO);
-  if (savedLogo) {
-    teamLogo = savedLogo;
+  function finishInit() {
+    if (roster.length >= 5) {
+      showAttendance();
+    } else {
+      showSetup();
+    }
   }
 
-  var savedFormat = localStorage.getItem(STORAGE_GAME_FORMAT);
-  if (savedFormat) {
-    try {
-      var f = JSON.parse(savedFormat);
-      if (f.quarters >= 1 && f.quarters <= 8) numQuarters = f.quarters;
-      if (f.subsPerQuarter >= 1 && f.subsPerQuarter <= 5) subsPerQuarter = f.subsPerQuarter;
-    } catch (e) {}
-  }
+  // Load from localStorage first
+  loadLocalState();
 
-  var savedRoster = localStorage.getItem(STORAGE_ROSTER);
-  if (savedRoster) {
-    try {
-      var parsed = JSON.parse(savedRoster);
-      if (Array.isArray(parsed) && parsed.length >= 5) {
-        roster = parsed;
-        // Go straight to attendance so they can mark who's here today
-        showAttendance();
-        return;
-      }
-    } catch (e) {}
+  // Check for saved team code and sync from Supabase
+  var savedCode = localStorage.getItem(STORAGE_TEAM_CODE);
+  if (savedCode) {
+    teamCode = savedCode;
+    // Pull latest from Supabase, then show appropriate screen
+    syncFromSupabase(function() {
+      finishInit();
+    });
+  } else {
+    finishInit();
   }
-
-  showSetup();
 })();
 </script>
 </body>
