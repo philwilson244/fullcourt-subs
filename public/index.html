@@ -165,64 +165,46 @@
     box-shadow: 0 0 12px rgba(255,107,43,0.2);
   }
 
-  /* ── Header Menu (hamburger) ── */
-  .header-menu-wrap { position: relative; z-index: 26; }
-
-  .menu-trigger {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface-2);
-    border: 1px solid var(--border-glow);
-    border-radius: 6px;
-    color: var(--cyan);
-    font-size: 1.2rem;
+  /* ── Rotation Action Row ── */
+  .rotation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 0 4px;
+  }
+  .rot-action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
     font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.15s;
     -webkit-tap-highlight-color: transparent;
   }
-  .menu-trigger:active { background: var(--cyan-dim); }
-
-  .header-menu {
-    display: none;
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    min-width: 160px;
+  .rot-action-btn:active {
     background: var(--surface-2);
-    border: 1px solid var(--border-glow);
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-    z-index: 25;
-  }
-  .header-menu.open { display: block; }
-
-  .menu-item {
-    display: block; width: 100%;
-    padding: 14px 18px;
-    background: none; border: none;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.55rem; font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
     color: var(--text-1);
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.12s;
-    border-bottom: 1px solid var(--border);
   }
-  .menu-item:last-child { border-bottom: none; }
-  .menu-item:active { background: var(--cyan-dim); }
-  .menu-item.menu-danger { color: var(--red); }
-  .menu-item.menu-danger:active { background: rgba(255,59,74,0.1); }
+  .rot-action-btn.rot-danger { color: var(--red); border-color: rgba(255,59,74,0.25); }
+  .rot-action-btn.rot-danger:active { background: rgba(255,59,74,0.1); }
 
-  .menu-backdrop {
-    display: none;
-    position: fixed; inset: 0;
-    z-index: 24;
+  /* ── Header Back Button ── */
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--cyan);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 8px;
+    -webkit-tap-highlight-color: transparent;
   }
-  .menu-backdrop.open { display: block; }
 
   /* ── Team Code Section ── */
   .team-code-section {
@@ -1623,6 +1605,13 @@
     </div>
   </div>
 
+  <div class="rotation-actions" id="rotation-actions">
+    <button class="rot-action-btn" id="rot-history-btn">History</button>
+    <button class="rot-action-btn" id="rot-attendance-btn">Attendance</button>
+    <button class="rot-action-btn" id="rot-roster-btn">Roster</button>
+    <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
+  </div>
+
   <div class="sec">
     <div class="sec-head">
       <div class="sec-icon court-icon">01</div>
@@ -1763,6 +1752,10 @@
   var statSubs = document.getElementById('stat-subs');
   var statRemaining = document.getElementById('stat-remaining');
   var rotationList = document.getElementById('rotation-list');
+  var rotHistoryBtn = document.getElementById('rot-history-btn');
+  var rotAttendanceBtn = document.getElementById('rot-attendance-btn');
+  var rotRosterBtn = document.getElementById('rot-roster-btn');
+  var rotResetBtn = document.getElementById('rot-reset-btn');
   var nextSubBtn = document.getElementById('next-sub-btn');
   var editModal = document.getElementById('edit-modal');
   var modalRoster = document.getElementById('modal-roster');
@@ -2454,56 +2447,15 @@
     bottomBar.style.display = 'block';
     updateLogoUI();
 
-    // Hamburger menu
-    var wrap = document.createElement('div');
-    wrap.className = 'header-menu-wrap';
-
-    var trigger = document.createElement('button');
-    trigger.className = 'menu-trigger';
-    trigger.innerHTML = '&#8942;'; // vertical ellipsis ⋮
-
-    var menu = document.createElement('div');
-    menu.className = 'header-menu';
-
-    var backdrop = document.createElement('div');
-    backdrop.className = 'menu-backdrop';
-
-    function closeMenu() {
-      menu.classList.remove('open');
-      backdrop.classList.remove('open');
-    }
-
-    function makeItem(label, action, danger) {
-      var btn = document.createElement('button');
-      btn.className = 'menu-item' + (danger ? ' menu-danger' : '');
-      btn.textContent = label;
-      btn.addEventListener('click', function() {
-        closeMenu();
-        action();
-      });
-      return btn;
-    }
-
-    menu.appendChild(makeItem('History', openHistoryModal));
-    menu.appendChild(makeItem('Attendance', function() {
+    // Back button in header
+    var backBtn = document.createElement('button');
+    backBtn.className = 'back-btn';
+    backBtn.innerHTML = '&#9664;'; // ◀
+    backBtn.addEventListener('click', function() {
       midGameReturn = true;
       showAttendance();
-    }));
-    menu.appendChild(makeItem('Roster', openEditModal));
-    menu.appendChild(makeItem('Reset', openResetModal, true));
-
-    trigger.addEventListener('click', function() {
-      var isOpen = menu.classList.contains('open');
-      if (isOpen) { closeMenu(); }
-      else { menu.classList.add('open'); backdrop.classList.add('open'); }
     });
-
-    backdrop.addEventListener('click', closeMenu);
-
-    wrap.appendChild(trigger);
-    wrap.appendChild(menu);
-    wrap.appendChild(backdrop);
-    headerActions.appendChild(wrap);
+    headerActions.appendChild(backBtn);
 
     render();
   }
@@ -2582,6 +2534,15 @@
   resetCancel.addEventListener('click', closeResetModal);
   resetConfirm.addEventListener('click', confirmReset);
   resetModal.addEventListener('click', function(e) { if (e.target === resetModal) closeResetModal(); });
+
+  // ── Rotation Action Row ──
+  rotHistoryBtn.addEventListener('click', openHistoryModal);
+  rotAttendanceBtn.addEventListener('click', function() {
+    midGameReturn = true;
+    showAttendance();
+  });
+  rotRosterBtn.addEventListener('click', openEditModal);
+  rotResetBtn.addEventListener('click', openResetModal);
 
   // ── Edit Roster Modal ──
 
