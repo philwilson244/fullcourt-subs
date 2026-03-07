@@ -3072,13 +3072,19 @@
     return null;
   }
 
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
   function buildGroups(names) {
-    var numGroups = Math.ceil(names.length / GROUP_SIZE);
+    var n = names.length;
+    // Number of unique rotations before the pattern repeats = n / gcd(n, 5)
+    // e.g., 10 players → 2 groups (perfect split), 11 → 11 groups, 12 → 12 groups
+    var cycleLength = n / gcd(n, GROUP_SIZE);
     var result = [];
-    for (var g = 0; g < numGroups; g++) {
+    for (var g = 0; g < cycleLength; g++) {
       var group = [];
+      var start = (g * GROUP_SIZE) % n;
       for (var i = 0; i < GROUP_SIZE; i++) {
-        group.push(names[(g * GROUP_SIZE + i) % names.length]);
+        group.push(names[(start + i) % n]);
       }
       result.push(group);
     }
