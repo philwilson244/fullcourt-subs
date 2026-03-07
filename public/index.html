@@ -526,6 +526,17 @@
     padding: 12px 4px;
   }
 
+  .stepper-unit {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: var(--text-3);
+    text-align: center;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
   .format-summary {
     font-size: 0.7rem;
     font-weight: 600;
@@ -748,24 +759,98 @@
     letter-spacing: 1px;
   }
 
-  /* ── Stats Bar ── */
-  .stats-bar {
-    display: flex;
-    margin: 20px 20px 0;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+  /* ── Scoreboard ── */
+  .scoreboard {
+    margin: 16px 20px 0;
+    border: 1px solid var(--border-glow);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #0D0F18 0%, #080A12 100%);
     overflow: hidden;
-    background: var(--surface-1);
+    box-shadow: 0 0 20px rgba(255,107,43,0.06), inset 0 1px 0 rgba(255,255,255,0.03);
   }
 
-  .stat {
+  .sb-quarter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 16px 6px;
+  }
+
+  .sb-quarter-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+
+  .sb-quarter-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .sb-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .sb-dot.sb-dot-done {
+    background: rgba(255,107,43,0.25);
+    border-color: rgba(255,107,43,0.3);
+  }
+
+  .sb-dot.sb-dot-active {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow: 0 0 8px rgba(255,107,43,0.5), 0 0 16px rgba(255,107,43,0.2);
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+
+  .sb-clock {
+    text-align: center;
+    padding: 4px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sb-time {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(255,107,43,0.4), 0 0 40px rgba(255,107,43,0.15);
+    line-height: 1;
+    letter-spacing: 3px;
+  }
+
+  .sb-time-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.4rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .sb-stats {
+    display: flex;
+  }
+
+  .sb-stat {
     flex: 1;
     text-align: center;
-    padding: 14px 4px;
+    padding: 12px 4px;
     position: relative;
   }
 
-  .stat:not(:last-child)::after {
+  .sb-stat:not(:last-child)::after {
     content: '';
     position: absolute;
     right: 0; top: 10px; bottom: 10px;
@@ -773,17 +858,16 @@
     background: var(--border);
   }
 
-  .stat-val {
+  .sb-stat-val {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 900;
-    color: var(--cyan);
-    text-shadow: 0 0 10px rgba(255,107,43,0.3);
+    color: var(--text-1);
     line-height: 1;
   }
 
-  .stat-lbl {
-    font-size: 0.5rem;
+  .sb-stat-lbl {
+    font-size: 0.45rem;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -1558,6 +1642,15 @@
           <button class="stepper-btn" id="subs-per-q-plus" type="button">+</button>
         </div>
       </div>
+      <div class="format-field">
+        <label class="field-label">Quarter Length</label>
+        <div class="stepper">
+          <button class="stepper-btn" id="qtr-len-minus" type="button">&minus;</button>
+          <div class="stepper-val" id="qtr-len-val">8</div>
+          <button class="stepper-btn" id="qtr-len-plus" type="button">+</button>
+        </div>
+        <div class="stepper-unit">min</div>
+      </div>
     </div>
     <div class="format-summary" id="format-summary">4 quarters &times; 1 sub = 4 total subs</div>
   </div>
@@ -1595,22 +1688,28 @@
     <div class="team-edit-hint">TAP TO EDIT</div>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat">
-      <div class="stat-val" id="stat-quarter">Q1</div>
-      <div class="stat-lbl">Quarter</div>
+  <div class="scoreboard">
+    <div class="sb-quarter">
+      <div class="sb-quarter-label">QUARTER</div>
+      <div class="sb-quarter-dots" id="sb-quarter-dots"></div>
     </div>
-    <div class="stat">
-      <div class="stat-val" id="stat-players">0</div>
-      <div class="stat-lbl">Players</div>
+    <div class="sb-clock">
+      <div class="sb-time" id="sb-time">8:00</div>
+      <div class="sb-time-label" id="sb-time-label">QUARTER LENGTH</div>
     </div>
-    <div class="stat">
-      <div class="stat-val" id="stat-subs">0</div>
-      <div class="stat-lbl">Subs</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" id="stat-remaining">0</div>
-      <div class="stat-lbl">Left</div>
+    <div class="sb-stats">
+      <div class="sb-stat">
+        <div class="sb-stat-val" id="stat-players">0</div>
+        <div class="sb-stat-lbl">Players</div>
+      </div>
+      <div class="sb-stat">
+        <div class="sb-stat-val" id="stat-subs">0</div>
+        <div class="sb-stat-lbl">Subs</div>
+      </div>
+      <div class="sb-stat">
+        <div class="sb-stat-val" id="stat-remaining">0</div>
+        <div class="sb-stat-lbl">Left</div>
+      </div>
     </div>
   </div>
 
@@ -1638,8 +1737,7 @@
   </div>
 
   <div class="rotation-actions" id="rotation-actions">
-    <button class="rot-action-btn" id="rot-history-btn">History</button>
-    <button class="rot-action-btn" id="rot-roster-btn">Roster</button>
+    <button class="rot-action-btn" id="rot-roster-btn">Edit Roster</button>
     <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
   </div>
 </div>
@@ -1755,12 +1853,14 @@
   var teamBanner = document.getElementById('team-banner');
   var courtPlayers = document.getElementById('court-players');
   var deckPlayers = document.getElementById('deck-players');
-  var statQuarter = document.getElementById('stat-quarter');
+  var sbQuarterDots = document.getElementById('sb-quarter-dots');
+  var sbTime = document.getElementById('sb-time');
+  var sbTimeLabel = document.getElementById('sb-time-label');
   var statPlayers = document.getElementById('stat-players');
   var statSubs = document.getElementById('stat-subs');
   var statRemaining = document.getElementById('stat-remaining');
   var rotationList = document.getElementById('rotation-list');
-  var rotHistoryBtn = document.getElementById('rot-history-btn');
+
 
   var rotRosterBtn = document.getElementById('rot-roster-btn');
   var rotResetBtn = document.getElementById('rot-reset-btn');
@@ -1793,6 +1893,9 @@
   var subsPerQMinusBtn = document.getElementById('subs-per-q-minus');
   var subsPerQPlusBtn = document.getElementById('subs-per-q-plus');
   var subsPerQValEl = document.getElementById('subs-per-q-val');
+  var qtrLenMinusBtn = document.getElementById('qtr-len-minus');
+  var qtrLenPlusBtn = document.getElementById('qtr-len-plus');
+  var qtrLenValEl = document.getElementById('qtr-len-val');
   var formatSummary = document.getElementById('format-summary');
   var historyModal = document.getElementById('history-modal');
   var historyList = document.getElementById('history-list');
@@ -1824,6 +1927,7 @@
   var slotCount = 10;
   var numQuarters = 4;
   var subsPerQuarter = 1;
+  var quarterLength = 8; // minutes
   var subHistory = [];
   var teamCode = '';
 
@@ -1867,7 +1971,7 @@
       team_name: teamName,
       team_subtitle: teamSubtitle,
       roster: roster,
-      game_format: { quarters: numQuarters, subsPerQuarter: subsPerQuarter },
+      game_format: { quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength },
       logo: teamLogo,
       updated_at: new Date().toISOString()
     }).eq('team_code', teamCode).then(function(res) {
@@ -1895,11 +1999,12 @@
       if (d.game_format) {
         if (d.game_format.quarters >= 1 && d.game_format.quarters <= 8) numQuarters = d.game_format.quarters;
         if (d.game_format.subsPerQuarter >= 1 && d.game_format.subsPerQuarter <= 5) subsPerQuarter = d.game_format.subsPerQuarter;
+        if (d.game_format.quarterLength >= 1 && d.game_format.quarterLength <= 20) quarterLength = d.game_format.quarterLength;
       }
       // Cache locally
       localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
       localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
-      localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter }));
+      localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength }));
       if (teamLogo) localStorage.setItem(STORAGE_LOGO, teamLogo);
       else localStorage.removeItem(STORAGE_LOGO);
       if (callback) callback(true);
@@ -1917,7 +2022,7 @@
       team_name: teamName,
       team_subtitle: teamSubtitle,
       roster: roster,
-      game_format: { quarters: numQuarters, subsPerQuarter: subsPerQuarter },
+      game_format: { quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength },
       logo: teamLogo
     }).then(function(res) {
       codeCreateBtn.textContent = 'CREATE TEAM';
@@ -1957,11 +2062,12 @@
       if (d.game_format) {
         if (d.game_format.quarters >= 1 && d.game_format.quarters <= 8) numQuarters = d.game_format.quarters;
         if (d.game_format.subsPerQuarter >= 1 && d.game_format.subsPerQuarter <= 5) subsPerQuarter = d.game_format.subsPerQuarter;
+        if (d.game_format.quarterLength >= 1 && d.game_format.quarterLength <= 20) quarterLength = d.game_format.quarterLength;
       }
       // Cache locally
       localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
       localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
-      localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter }));
+      localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength }));
       if (teamLogo) localStorage.setItem(STORAGE_LOGO, teamLogo);
       else localStorage.removeItem(STORAGE_LOGO);
 
@@ -2236,6 +2342,7 @@
   function updateFormatUI() {
     quartersValEl.textContent = numQuarters;
     subsPerQValEl.textContent = subsPerQuarter;
+    qtrLenValEl.textContent = quarterLength;
     var total = numQuarters * subsPerQuarter;
     formatSummary.textContent = numQuarters + ' quarter' + (numQuarters !== 1 ? 's' : '') +
       ' \u00D7 ' + subsPerQuarter + ' sub' + (subsPerQuarter !== 1 ? 's' : '') +
@@ -2243,7 +2350,7 @@
   }
 
   function saveGameFormat() {
-    localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter }));
+    localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength }));
     syncToSupabase();
   }
 
@@ -2404,7 +2511,19 @@
     renderPlayerCards(courtPlayers, courtGroup, 'court-p');
     renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
 
-    statQuarter.textContent = 'Q' + currentQ;
+    // Scoreboard quarter dots
+    sbQuarterDots.innerHTML = '';
+    for (var qi = 1; qi <= numQuarters; qi++) {
+      var dot = document.createElement('div');
+      dot.className = 'sb-dot';
+      if (qi < currentQ) dot.classList.add('sb-dot-done');
+      if (qi === currentQ) dot.classList.add('sb-dot-active');
+      sbQuarterDots.appendChild(dot);
+    }
+    // Scoreboard clock
+    sbTime.textContent = quarterLength + ':00';
+    sbTimeLabel.textContent = 'Q' + currentQ + (gameOver ? ' \u2014 FINAL' : '');
+
     statPlayers.textContent = activeRoster.length;
     statSubs.textContent = totalSubs;
     statRemaining.textContent = remaining;
@@ -2550,6 +2669,7 @@
     teamLogo = '';
     numQuarters = 4;
     subsPerQuarter = 1;
+    quarterLength = 8;
     subHistory = [];
     teamCode = '';
     localStorage.removeItem(STORAGE_ROSTER);
@@ -2566,7 +2686,6 @@
   resetModal.addEventListener('click', function(e) { if (e.target === resetModal) closeResetModal(); });
 
   // ── Rotation Action Row ──
-  rotHistoryBtn.addEventListener('click', openHistoryModal);
   rotRosterBtn.addEventListener('click', openEditModal);
   rotResetBtn.addEventListener('click', openResetModal);
 
@@ -2707,6 +2826,12 @@
   subsPerQPlusBtn.addEventListener('click', function() {
     if (subsPerQuarter < 5) { subsPerQuarter++; updateFormatUI(); }
   });
+  qtrLenMinusBtn.addEventListener('click', function() {
+    if (quarterLength > 1) { quarterLength--; updateFormatUI(); }
+  });
+  qtrLenPlusBtn.addEventListener('click', function() {
+    if (quarterLength < 20) { quarterLength++; updateFormatUI(); }
+  });
 
   // ══════════════════════════════
   // INIT
@@ -2733,6 +2858,7 @@
         var f = JSON.parse(savedFormat);
         if (f.quarters >= 1 && f.quarters <= 8) numQuarters = f.quarters;
         if (f.subsPerQuarter >= 1 && f.subsPerQuarter <= 5) subsPerQuarter = f.subsPerQuarter;
+        if (f.quarterLength >= 1 && f.quarterLength <= 20) quarterLength = f.quarterLength;
       } catch (e) {}
     }
 
