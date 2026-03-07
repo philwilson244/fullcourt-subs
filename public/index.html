@@ -1019,6 +1019,10 @@
   .q-row.qd .q-names { color: var(--text-2); }
   .q-row:not(.qa):not(.qd) .q-names { color: var(--text-3); }
 
+  .q-row.q-done { opacity: 0.35; }
+  .q-row.q-done .q-tag { color: var(--text-3); border-right: 1px solid var(--border); }
+  .q-row.q-done .q-names { color: var(--text-3); text-decoration: line-through; text-decoration-color: rgba(255,255,255,0.15); }
+
   /* ── Bottom Bar ── */
   .bottom-bar {
     position: fixed;
@@ -1626,7 +1630,7 @@
   </div>
 
   <div class="sec">
-    <div class="queue-label">FULL ROTATION</div>
+    <div class="queue-label">SUBSTITUTION SCHEDULE</div>
     <div class="q-grid" id="rotation-list"></div>
   </div>
 
@@ -2420,15 +2424,33 @@
       nextSubBtn.classList.remove('game-over');
     }
 
+    // Build full substitution schedule timeline
     rotationList.innerHTML = '';
-    for (var i = 0; i < groups.length; i++) {
+    var totalSlots = totalExpectedSubs + 1; // initial + each sub
+    for (var s = 0; s < totalSlots; s++) {
+      var groupIdx = s % groups.length;
       var row = document.createElement('div');
       row.className = 'q-row';
 
       var tag = '';
-      if (i === currentIndex) { row.classList.add('qa'); tag = 'COURT'; }
-      else if (i === deckIndex) { row.classList.add('qd'); tag = 'DECK'; }
-      else { tag = 'GRP ' + (i + 1); }
+      if (s < totalSubs) {
+        // Past — already done
+        row.classList.add('q-done');
+        tag = 'SUB ' + s;
+        if (s === 0) tag = 'START';
+      } else if (s === totalSubs) {
+        // Current on court
+        row.classList.add('qa');
+        tag = 'COURT';
+      } else if (s === totalSubs + 1) {
+        // On deck
+        row.classList.add('qd');
+        tag = 'DECK';
+      } else {
+        // Future
+        var futureQ = getSubQuarter(s);
+        tag = 'Q' + futureQ;
+      }
 
       var tagEl = document.createElement('div');
       tagEl.className = 'q-tag';
@@ -2436,7 +2458,7 @@
 
       var namesEl = document.createElement('div');
       namesEl.className = 'q-names';
-      namesEl.textContent = groups[i].join(', ');
+      namesEl.textContent = groups[groupIdx].join(', ');
 
       row.appendChild(tagEl);
       row.appendChild(namesEl);
