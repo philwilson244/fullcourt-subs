@@ -1554,6 +1554,472 @@
     font-size: 0.8rem;
     font-weight: 600;
   }
+
+  /* ═══════════════════════════════
+     GAME SCORE ROW (in scoreboard)
+     ═══════════════════════════════ */
+  .sb-game-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-team-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 50px;
+  }
+  .sb-team-mini-logo {
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface-3);
+  }
+  .sb-team-mini-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .sb-team-abbr {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.4rem; font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .sb-score-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sb-score-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem; font-weight: 900;
+    color: var(--text-1);
+    min-width: 40px;
+    text-align: center;
+  }
+  .sb-score-num.sb-home { color: var(--cyan); text-shadow: 0 0 12px rgba(255,107,43,0.4); }
+  .sb-score-sep {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    color: var(--text-3);
+  }
+
+  /* ═══════════════════════════════
+     OPPONENT SCORING PANEL
+     ═══════════════════════════════ */
+  .opp-scoring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+  .opp-scoring-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    min-width: 50px;
+    text-align: center;
+  }
+  .opp-score-btn {
+    padding: 8px 18px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-2);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem; font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opp-score-btn:active {
+    background: var(--magenta-dim);
+    color: var(--magenta);
+    border-color: rgba(255,45,120,0.3);
+  }
+
+  /* ═══════════════════════════════
+     SCORING MODAL
+     ═══════════════════════════════ */
+  .score-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .score-btn {
+    flex: 1;
+    padding: 22px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-glow);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem; font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .score-btn:active {
+    background: var(--cyan);
+    color: var(--bg);
+    box-shadow: 0 0 24px rgba(255,107,43,0.4);
+  }
+  .score-btn-label {
+    font-size: 0.45rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    display: block;
+    margin-top: 4px;
+  }
+  .score-btn:active .score-btn-label { color: var(--bg); }
+
+  /* Player points badge on court cards */
+  .p-pts {
+    padding: 0 12px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem; font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 6px rgba(255,107,43,0.3);
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════
+     GAME SETUP SCREEN
+     ═══════════════════════════════ */
+  #game-setup-screen {
+    display: none;
+    position: relative; z-index: 1;
+    max-width: 500px; margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  .game-code-display {
+    text-align: center;
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-glow);
+    border-radius: 8px;
+  }
+  .game-code-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem; font-weight: 900;
+    letter-spacing: 8px;
+    color: var(--cyan);
+    text-shadow: 0 0 14px rgba(255,107,43,0.5);
+  }
+  .game-code-hint {
+    font-size: 0.65rem;
+    color: var(--text-3);
+    margin-top: 8px;
+  }
+  .game-code-link {
+    font-size: 0.6rem;
+    color: var(--text-2);
+    margin-top: 4px;
+    word-break: break-all;
+  }
+
+  /* ═══════════════════════════════
+     GAME SUMMARY SCREEN
+     ═══════════════════════════════ */
+  #summary-screen {
+    display: none;
+    position: relative; z-index: 1;
+    max-width: 500px; margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  .summary-final-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 16px;
+    background: linear-gradient(180deg, #0D0F18 0%, #080A12 100%);
+    border: 1px solid var(--border-glow);
+    border-radius: 10px;
+    margin: 0 0 20px;
+  }
+  .summary-team {
+    flex: 1;
+    text-align: center;
+  }
+  .summary-team-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-2);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .summary-team-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem; font-weight: 900;
+    line-height: 1;
+  }
+  .summary-team-score.home { color: var(--cyan); text-shadow: 0 0 16px rgba(255,107,43,0.4); }
+  .summary-team-score.away { color: var(--text-1); }
+  .summary-vs {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem; font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 2px;
+  }
+
+  .stat-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .stat-table th {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.4rem; font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    padding: 8px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-table th:first-child { text-align: left; }
+  .stat-table td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+  }
+  .stat-table td:first-child {
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--text-1);
+  }
+  .stat-table td.pts-cell {
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+  }
+
+  /* ═══════════════════════════════
+     GAME HISTORY SCREEN
+     ═══════════════════════════════ */
+  #game-history-screen {
+    display: none;
+    position: relative; z-index: 1;
+    max-width: 500px; margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  .gh-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .gh-card:active { border-color: var(--border-glow); }
+  .gh-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .gh-card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+  .gh-team {
+    flex: 1;
+    text-align: center;
+  }
+  .gh-team-name {
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--text-1);
+    margin-bottom: 4px;
+  }
+  .gh-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem; font-weight: 900;
+  }
+  .gh-score.home { color: var(--cyan); }
+  .gh-score.away { color: var(--text-2); }
+  .gh-vs {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem; font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 2px;
+  }
+
+  /* ═══════════════════════════════
+     SPECTATOR VIEW
+     ═══════════════════════════════ */
+  #spectator-screen {
+    display: none;
+    position: relative; z-index: 1;
+    max-width: 500px; margin: 0 auto;
+    padding: 20px;
+    min-height: 100dvh;
+  }
+  .spec-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 0;
+  }
+  .spec-status {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--red);
+    padding: 4px 12px;
+    border: 1px solid rgba(255,59,74,0.3);
+    border-radius: 4px;
+    background: rgba(255,59,74,0.08);
+  }
+  .spec-status.live-pulse { animation: text-glow-red 2s ease-in-out infinite; }
+  @keyframes text-glow-red {
+    0%, 100% { text-shadow: 0 0 8px rgba(255,59,74,0.3); }
+    50% { text-shadow: 0 0 20px rgba(255,59,74,0.6); }
+  }
+  .spec-status.final {
+    color: var(--text-3);
+    animation: none;
+    border-color: var(--border);
+    background: var(--surface-2);
+  }
+  .spec-quarter {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-2);
+  }
+  .spec-scoreboard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 16px;
+    background: linear-gradient(180deg, #0D0F18 0%, #080A12 100%);
+    border: 1px solid var(--border-glow);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(255,107,43,0.06);
+  }
+  .spec-team { flex: 1; text-align: center; }
+  .spec-team-logo {
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    margin: 0 auto 8px;
+    overflow: hidden;
+    background: var(--surface-3);
+  }
+  .spec-team-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .spec-team-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--text-2);
+    text-transform: uppercase;
+  }
+  .spec-scores {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .spec-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem; font-weight: 900;
+    color: var(--text-1);
+    text-shadow: 0 0 20px rgba(255,107,43,0.3);
+    min-width: 50px;
+    text-align: center;
+  }
+  .spec-divider {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    color: var(--text-3);
+  }
+  .spec-feed { margin-top: 12px; }
+  .spec-feed-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem; font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-3);
+    margin-bottom: 10px;
+  }
+  .spec-play {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 4px;
+  }
+  .spec-play-pts {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem; font-weight: 900;
+    color: var(--cyan);
+    width: 32px;
+    text-align: center;
+  }
+  .spec-play-detail {
+    flex: 1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .spec-play-quarter {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.4rem; font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 1px;
+  }
+  .spec-watermark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 30px 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem; font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-3);
+    opacity: 0.5;
+  }
+  .spec-not-found {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-3);
+  }
+  .spec-not-found h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: var(--text-2);
+    margin-bottom: 8px;
+  }
+
+  .hidden { display: none !important; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1661,6 +2127,7 @@
 
   <div class="field-error" id="roster-error"></div>
   <button class="start-btn" id="start-btn">LAUNCH</button>
+  <button class="start-btn" id="game-history-btn" style="background:transparent;border:1px solid rgba(255,107,43,.3);color:#FF6B2B;margin-top:0.5rem;">GAME HISTORY</button>
 </div>
 
 <!-- ═══ ATTENDANCE ═══ -->
@@ -1678,6 +2145,36 @@
   </div>
 </div>
 
+<!-- ═══ GAME SETUP ═══ -->
+<div id="game-setup-screen">
+  <div class="setup-hero">
+    <h1>GAME <span class="glow">SETUP</span></h1>
+    <p>Name your opponent to start tracking the score.</p>
+  </div>
+
+  <div class="format-section">
+    <div class="format-label">OPPONENT</div>
+    <div class="team-field">
+      <label class="field-label">Opponent Name</label>
+      <input type="text" class="field-input" id="opponent-name-input" placeholder="Tigers" maxlength="40">
+    </div>
+  </div>
+
+  <div class="game-code-display" id="game-code-section-gs" style="display:none">
+    <div class="game-code-val" id="game-code-val"></div>
+    <div class="game-code-hint">Share this code for the live scoreboard</div>
+    <div class="game-code-link" id="game-code-link"></div>
+    <div style="margin-top:10px">
+      <button class="code-btn code-btn-secondary" id="game-code-copy" type="button">COPY LINK</button>
+    </div>
+  </div>
+
+  <div class="att-actions" style="margin-top:20px">
+    <button class="att-btn-secondary" id="game-setup-back">BACK</button>
+    <button class="start-btn" id="game-setup-go" style="flex:1">START GAME</button>
+  </div>
+</div>
+
 <!-- ═══ ROTATION ═══ -->
 <div id="rotation-screen">
   <div class="team-logo-banner" id="rotation-logo"><img id="rotation-logo-img" src="" alt=""></div>
@@ -1692,6 +2189,21 @@
     <div class="sb-quarter">
       <div class="sb-quarter-label">QUARTER</div>
       <div class="sb-quarter-dots" id="sb-quarter-dots"></div>
+    </div>
+    <div class="sb-game-score" id="sb-game-score" style="display:none">
+      <div class="sb-team-side">
+        <div class="sb-team-mini-logo" id="sb-home-logo"></div>
+        <div class="sb-team-abbr" id="sb-home-abbr">HOME</div>
+      </div>
+      <div class="sb-score-display">
+        <span class="sb-score-num sb-home" id="sb-home-score-val">0</span>
+        <span class="sb-score-sep">&ndash;</span>
+        <span class="sb-score-num" id="sb-away-score-val">0</span>
+      </div>
+      <div class="sb-team-side">
+        <div class="sb-team-mini-logo" id="sb-away-logo"></div>
+        <div class="sb-team-abbr" id="sb-away-abbr">AWAY</div>
+      </div>
     </div>
     <div class="sb-clock">
       <div class="sb-time" id="sb-time">8:00</div>
@@ -1711,6 +2223,13 @@
         <div class="sb-stat-lbl">Left</div>
       </div>
     </div>
+  </div>
+
+  <div class="opp-scoring" id="opp-scoring" style="display:none">
+    <div class="opp-scoring-label" id="opp-scoring-label">OPPONENT</div>
+    <button class="opp-score-btn" data-pts="1">+1</button>
+    <button class="opp-score-btn" data-pts="2">+2</button>
+    <button class="opp-score-btn" data-pts="3">+3</button>
   </div>
 
   <div class="sec">
@@ -1815,6 +2334,96 @@
   </div>
 </div>
 
+<!-- ── Scoring Modal ── -->
+<div class="modal-overlay" id="scoring-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="scoring-player-name">PLAYER</h2>
+    <div class="score-btns">
+      <button class="score-btn" data-pts="1">+1<span class="score-btn-label">FT</span></button>
+      <button class="score-btn" data-pts="2">+2<span class="score-btn-label">FG</span></button>
+      <button class="score-btn" data-pts="3">+3<span class="score-btn-label">3PT</span></button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="scoring-cancel">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAME SUMMARY ═══ -->
+<div id="summary-screen">
+  <div class="setup-hero">
+    <h1>GAME <span class="glow">OVER</span></h1>
+  </div>
+  <div class="summary-final-score" id="summary-final-score"></div>
+  <div class="sec">
+    <div class="sec-head">
+      <div class="sec-icon court-icon">ST</div>
+      <div class="sec-title">PLAYER STATS</div>
+      <div class="sec-line court-line"></div>
+    </div>
+    <div id="summary-player-stats"></div>
+  </div>
+  <div class="sec">
+    <div class="sec-head">
+      <div class="sec-icon deck-icon">PL</div>
+      <div class="sec-title">SCORING PLAYS</div>
+      <div class="sec-line deck-line"></div>
+    </div>
+    <div id="summary-scoring-plays"></div>
+  </div>
+  <div class="rotation-actions" style="padding:20px">
+    <button class="rot-action-btn" id="summary-share-btn">SHARE LINK</button>
+    <button class="rot-action-btn" id="summary-done-btn" style="background:var(--cyan);color:var(--bg);border-color:var(--cyan)">DONE</button>
+  </div>
+</div>
+
+<!-- ═══ GAME HISTORY ═══ -->
+<div id="game-history-screen">
+  <div class="setup-hero">
+    <h1>GAME <span class="glow">HISTORY</span></h1>
+    <p>Past games and final scores.</p>
+  </div>
+  <div id="game-history-list"></div>
+  <div class="history-empty" id="game-history-empty">No past games yet.</div>
+  <div style="padding:0 20px 40px;">
+    <button class="att-btn-secondary" id="history-back-btn" style="width:100%">BACK</button>
+  </div>
+</div>
+
+<!-- ═══ SPECTATOR VIEW ═══ -->
+<div id="spectator-screen">
+  <div class="spec-header">
+    <div class="spec-status live-pulse" id="spec-status">LIVE</div>
+    <div class="spec-quarter" id="spec-quarter">Q1</div>
+  </div>
+  <div class="spec-scoreboard">
+    <div class="spec-team">
+      <div class="spec-team-logo" id="spec-home-logo"></div>
+      <div class="spec-team-name" id="spec-home-name">HOME</div>
+    </div>
+    <div class="spec-scores">
+      <div class="spec-score" id="spec-home-score">0</div>
+      <div class="spec-divider">&ndash;</div>
+      <div class="spec-score" id="spec-away-score">0</div>
+    </div>
+    <div class="spec-team">
+      <div class="spec-team-logo" id="spec-away-logo"></div>
+      <div class="spec-team-name" id="spec-away-name">AWAY</div>
+    </div>
+  </div>
+  <div class="spec-feed">
+    <div class="spec-feed-label">SCORING PLAYS</div>
+    <div id="spec-feed-list"></div>
+    <div class="history-empty" id="spec-feed-empty">No scoring plays yet.</div>
+  </div>
+  <div class="spec-not-found" id="spec-not-found" style="display:none">
+    <h2>GAME NOT FOUND</h2>
+    <p>Check the game code and try again.</p>
+  </div>
+  <div class="spec-watermark">FULLCOURT</div>
+</div>
+
 <script>
 (function() {
   var STORAGE_ROSTER = 'fullcourt_roster';
@@ -1822,6 +2431,8 @@
   var STORAGE_LOGO = 'fullcourt_logo';
   var STORAGE_GAME_FORMAT = 'fullcourt_game_format';
   var STORAGE_TEAM_CODE = 'fullcourt_team_code';
+  var STORAGE_GAME_CODE = 'fullcourt_game_code';
+  var STORAGE_GAME_SIDE = 'fullcourt_game_side';
 
   // Supabase
   var SUPABASE_URL = 'https://tniyivhikkoxcmtzqoqw.supabase.co';
@@ -1844,6 +2455,7 @@
   var addPlayerBtn = document.getElementById('add-player-btn');
   var rosterError = document.getElementById('roster-error');
   var startBtn = document.getElementById('start-btn');
+  var gameHistoryBtn = document.getElementById('game-history-btn');
   var attList = document.getElementById('att-list');
   var attCount = document.getElementById('att-count');
   var attBack = document.getElementById('att-back');
@@ -1914,6 +2526,49 @@
   var codeDisconnectBtn = document.getElementById('code-disconnect-btn');
   var codeStatus = document.getElementById('code-status');
 
+  // Game setup DOM refs
+  var gameSetupScreen = document.getElementById('game-setup-screen');
+  var opponentNameInput = document.getElementById('opponent-name-input');
+  var gameCodeSectionGS = document.getElementById('game-code-section-gs');
+  var gameCodeVal = document.getElementById('game-code-val');
+  var gameCodeLink = document.getElementById('game-code-link');
+  var gameCodeCopy = document.getElementById('game-code-copy');
+  var gameSetupBack = document.getElementById('game-setup-back');
+  var gameSetupGo = document.getElementById('game-setup-go');
+
+  // Scoreboard game score DOM refs
+  var sbGameScore = document.getElementById('sb-game-score');
+  var sbHomeLogo = document.getElementById('sb-home-logo');
+  var sbHomeAbbr = document.getElementById('sb-home-abbr');
+  var sbHomeScoreVal = document.getElementById('sb-home-score-val');
+  var sbAwayLogo = document.getElementById('sb-away-logo');
+  var sbAwayAbbr = document.getElementById('sb-away-abbr');
+  var sbAwayScoreVal = document.getElementById('sb-away-score-val');
+  var oppScoring = document.getElementById('opp-scoring');
+  var oppScoringLabel = document.getElementById('opp-scoring-label');
+
+  // Scoring modal DOM refs
+  var scoringModal = document.getElementById('scoring-modal');
+  var scoringPlayerNameEl = document.getElementById('scoring-player-name');
+  var scoringCancelBtn = document.getElementById('scoring-cancel');
+
+  // Summary DOM refs
+  var summaryScreen = document.getElementById('summary-screen');
+  var summaryFinalScore = document.getElementById('summary-final-score');
+  var summaryPlayerStats = document.getElementById('summary-player-stats');
+  var summaryScoringPlays = document.getElementById('summary-scoring-plays');
+  var summaryShareBtn = document.getElementById('summary-share-btn');
+  var summaryDoneBtn = document.getElementById('summary-done-btn');
+
+  // Game history DOM refs
+  var gameHistoryScreen = document.getElementById('game-history-screen');
+  var gameHistoryList = document.getElementById('game-history-list');
+  var gameHistoryEmpty = document.getElementById('game-history-empty');
+  var historyBackBtn = document.getElementById('history-back-btn');
+
+  // Spectator DOM refs
+  var spectatorScreen = document.getElementById('spectator-screen');
+
   // State
   var roster = [];       // full saved roster
   var activeRoster = []; // players present today
@@ -1930,6 +2585,21 @@
   var quarterLength = 8; // minutes
   var subHistory = [];
   var teamCode = '';
+
+  // Game / Scoring state
+  var gameCode = '';
+  var gameSide = '';       // 'home' or 'away'
+  var gameStatus = 'live';
+  var homeScore = 0;
+  var awayScore = 0;
+  var awayTeamName = '';
+  var awayTeamLogo = '';
+  var playerStats = {};    // { "Player": { pts:0, fgm:0, tpm:0, ftm:0 } }
+  var scoringPlays = [];
+  var playOrderCounter = 0;
+  var isSpectatorView = false;
+  var spectatorPollTimer = null;
+  var scoringPlayerName = '';
 
   // ══════════════════════════════
   // SUPABASE SYNC
@@ -2315,6 +2985,491 @@
   }
 
   // ══════════════════════════════
+  // GAME / SCORING FUNCTIONS
+  // ══════════════════════════════
+
+  function generateGameCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var code = '';
+    for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  }
+
+  function initPlayerStats() {
+    playerStats = {};
+    for (var i = 0; i < activeRoster.length; i++) {
+      playerStats[activeRoster[i]] = { pts: 0, fgm: 0, tpm: 0, ftm: 0 };
+    }
+  }
+
+  function createGame(callback) {
+    var code = generateGameCode();
+    var oppName = opponentNameInput ? opponentNameInput.value.trim() : '';
+    if (!oppName) oppName = 'Opponent';
+    awayTeamName = oppName;
+
+    var row = {
+      game_code: code,
+      status: 'live',
+      home_team_code: teamCode || null,
+      home_team_name: teamName || 'Home',
+      home_team_logo: teamLogo || '',
+      away_team_code: null,
+      away_team_name: awayTeamName,
+      away_team_logo: '',
+      home_score: 0,
+      away_score: 0,
+      num_quarters: numQuarters,
+      quarter_length: quarterLength,
+      current_quarter: 1,
+      home_player_stats: {},
+      away_player_stats: {},
+      home_sub_history: [],
+      away_sub_history: []
+    };
+
+    sb.from('games').insert(row).then(function(res) {
+      if (res.error) {
+        if (callback) callback(false);
+        return;
+      }
+      gameCode = code;
+      gameSide = 'home';
+      gameStatus = 'live';
+      homeScore = 0;
+      awayScore = 0;
+      scoringPlays = [];
+      playOrderCounter = 0;
+      localStorage.setItem(STORAGE_GAME_CODE, gameCode);
+      localStorage.setItem(STORAGE_GAME_SIDE, gameSide);
+      if (callback) callback(true);
+    });
+  }
+
+  function syncGameToSupabase() {
+    if (!gameCode) return;
+    var totalExpectedSubs = numQuarters * subsPerQuarter;
+    var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
+
+    var update = { updated_at: new Date().toISOString(), current_quarter: currentQ };
+    if (gameSide === 'home') {
+      update.home_score = homeScore;
+      update.home_player_stats = playerStats;
+      update.home_sub_history = subHistory;
+    } else {
+      update.away_score = awayScore;
+      update.away_player_stats = playerStats;
+      update.away_sub_history = subHistory;
+    }
+    // Always update the opponent score from our side too
+    if (gameSide === 'home') {
+      update.away_score = awayScore;
+    } else {
+      update.home_score = homeScore;
+    }
+
+    sb.from('games').update(update).eq('game_code', gameCode).then(function() {});
+  }
+
+  function recordScore(playerName, points, side) {
+    if (side === 'home') {
+      homeScore += points;
+      if (playerStats[playerName]) {
+        playerStats[playerName].pts += points;
+        if (points === 1) playerStats[playerName].ftm++;
+        else if (points === 2) playerStats[playerName].fgm++;
+        else if (points === 3) playerStats[playerName].tpm++;
+      }
+    } else {
+      awayScore += points;
+    }
+
+    playOrderCounter++;
+    var totalExpectedSubs = numQuarters * subsPerQuarter;
+    var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
+    var play = {
+      team_side: side,
+      player_name: playerName,
+      points: points,
+      quarter: currentQ,
+      play_order: playOrderCounter
+    };
+    scoringPlays.push(play);
+
+    // Push to Supabase
+    if (gameCode) {
+      sb.from('scoring_plays').insert({
+        game_code: gameCode,
+        team_side: side,
+        player_name: playerName,
+        points: points,
+        quarter: currentQ,
+        play_order: playOrderCounter
+      }).then(function() {});
+      syncGameToSupabase();
+    }
+
+    render();
+  }
+
+  function openScoringModal(name) {
+    scoringPlayerName = name;
+    scoringPlayerNameEl.textContent = name.toUpperCase();
+    scoringModal.classList.add('open');
+  }
+
+  function closeScoringModal() {
+    scoringModal.classList.remove('open');
+  }
+
+  function endGame() {
+    gameStatus = 'final';
+    if (gameCode) {
+      sb.from('games').update({ status: 'final', updated_at: new Date().toISOString() })
+        .eq('game_code', gameCode).then(function() {});
+    }
+    showSummary();
+  }
+
+  // ── Game Setup Screen ──
+
+  function showGameSetup() {
+    hideAll();
+    gameSetupScreen.style.display = 'block';
+    opponentNameInput.value = awayTeamName || '';
+    gameCodeSectionGS.style.display = 'none';
+  }
+
+  function startGame() {
+    var oppName = opponentNameInput.value.trim();
+    if (!oppName) { opponentNameInput.focus(); return; }
+    awayTeamName = oppName;
+
+    gameSetupGo.textContent = 'CREATING...';
+    gameSetupGo.disabled = true;
+
+    createGame(function(success) {
+      gameSetupGo.textContent = 'START GAME';
+      gameSetupGo.disabled = false;
+      if (!success) return;
+
+      // Show the game code
+      gameCodeVal.textContent = gameCode;
+      var link = window.location.origin + window.location.pathname + '?game=' + gameCode;
+      gameCodeLink.textContent = link;
+      gameCodeSectionGS.style.display = '';
+
+      // Init player stats and go to rotation
+      initPlayerStats();
+      showRotation();
+    });
+  }
+
+  gameSetupBack.addEventListener('click', showAttendance);
+  gameSetupGo.addEventListener('click', startGame);
+  gameCodeCopy.addEventListener('click', function() {
+    var link = window.location.origin + window.location.pathname + '?game=' + gameCode;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(function() {
+        gameCodeCopy.textContent = 'COPIED!';
+        setTimeout(function() { gameCodeCopy.textContent = 'COPY LINK'; }, 2000);
+      });
+    }
+  });
+
+  // ── Scoring Modal Events ──
+
+  scoringCancelBtn.addEventListener('click', closeScoringModal);
+  scoringModal.addEventListener('click', function(e) { if (e.target === scoringModal) closeScoringModal(); });
+
+  var scoreBtns = document.querySelectorAll('.score-btn');
+  for (var si = 0; si < scoreBtns.length; si++) {
+    scoreBtns[si].addEventListener('click', function() {
+      var pts = parseInt(this.getAttribute('data-pts'));
+      recordScore(scoringPlayerName, pts, gameSide || 'home');
+      closeScoringModal();
+    });
+  }
+
+  // ── Opponent Scoring Events ──
+
+  var oppScoreBtns = document.querySelectorAll('.opp-score-btn');
+  for (var oi = 0; oi < oppScoreBtns.length; oi++) {
+    oppScoreBtns[oi].addEventListener('click', function() {
+      var pts = parseInt(this.getAttribute('data-pts'));
+      var oppSide = gameSide === 'home' ? 'away' : 'home';
+      recordScore(awayTeamName, pts, oppSide);
+    });
+  }
+
+  // ── Game Summary ──
+
+  function showSummary() {
+    hideAll();
+    summaryScreen.style.display = 'block';
+    renderSummary();
+  }
+
+  function renderSummary() {
+    // Final score
+    var homeName = teamName || 'Home';
+    var oppName = awayTeamName || 'Opponent';
+    if (gameSide === 'away') {
+      var tmp = homeName; homeName = oppName; oppName = tmp;
+    }
+    summaryFinalScore.innerHTML =
+      '<div class="summary-team"><div class="summary-team-name">' + escHtml(teamName || 'Home') + '</div>' +
+      '<div class="summary-team-score home">' + homeScore + '</div></div>' +
+      '<div class="summary-vs">VS</div>' +
+      '<div class="summary-team"><div class="summary-team-name">' + escHtml(awayTeamName || 'Opponent') + '</div>' +
+      '<div class="summary-team-score away">' + awayScore + '</div></div>';
+
+    // Player stats table
+    var hasStats = false;
+    var rows = '';
+    for (var i = 0; i < activeRoster.length; i++) {
+      var name = activeRoster[i];
+      var s = playerStats[name] || { pts: 0, fgm: 0, tpm: 0, ftm: 0 };
+      if (s.pts > 0) hasStats = true;
+      rows += '<tr><td>' + escHtml(name) + '</td><td class="pts-cell">' + s.pts + '</td>' +
+        '<td>' + s.fgm + '</td><td>' + s.tpm + '</td><td>' + s.ftm + '</td></tr>';
+    }
+    if (hasStats || activeRoster.length > 0) {
+      summaryPlayerStats.innerHTML =
+        '<table class="stat-table"><thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th></tr></thead><tbody>' +
+        rows + '</tbody></table>';
+    } else {
+      summaryPlayerStats.innerHTML = '<div class="history-empty">No player stats.</div>';
+    }
+
+    // Scoring plays
+    if (scoringPlays.length > 0) {
+      var playsHtml = '';
+      for (var j = scoringPlays.length - 1; j >= 0; j--) {
+        var p = scoringPlays[j];
+        playsHtml += '<div class="spec-play">' +
+          '<div class="spec-play-pts">+' + p.points + '</div>' +
+          '<div class="spec-play-detail">' + escHtml(p.player_name) + '</div>' +
+          '<div class="spec-play-quarter">Q' + p.quarter + '</div></div>';
+      }
+      summaryScoringPlays.innerHTML = playsHtml;
+    } else {
+      summaryScoringPlays.innerHTML = '<div class="history-empty">No scoring plays.</div>';
+    }
+  }
+
+  summaryDoneBtn.addEventListener('click', function() {
+    // Clear game state
+    gameCode = '';
+    gameSide = '';
+    homeScore = 0;
+    awayScore = 0;
+    awayTeamName = '';
+    playerStats = {};
+    scoringPlays = [];
+    playOrderCounter = 0;
+    localStorage.removeItem(STORAGE_GAME_CODE);
+    localStorage.removeItem(STORAGE_GAME_SIDE);
+    showSetup();
+  });
+
+  summaryShareBtn.addEventListener('click', function() {
+    if (!gameCode) return;
+    var link = window.location.origin + window.location.pathname + '?game=' + gameCode;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(function() {
+        summaryShareBtn.textContent = 'COPIED!';
+        setTimeout(function() { summaryShareBtn.textContent = 'SHARE LINK'; }, 2000);
+      });
+    }
+  });
+
+  // ── Game History ──
+
+  function showGameHistory() {
+    hideAll();
+    gameHistoryScreen.style.display = 'block';
+    loadGameHistory();
+  }
+
+  function loadGameHistory() {
+    gameHistoryList.innerHTML = '';
+    gameHistoryEmpty.style.display = '';
+    if (!teamCode) { gameHistoryEmpty.textContent = 'Connect a team to see game history.'; return; }
+
+    gameHistoryEmpty.textContent = 'Loading...';
+    sb.from('games').select('*')
+      .or('home_team_code.eq.' + teamCode + ',away_team_code.eq.' + teamCode)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(function(res) {
+        if (res.error || !res.data || res.data.length === 0) {
+          gameHistoryEmpty.textContent = 'No past games yet.';
+          return;
+        }
+        gameHistoryEmpty.style.display = 'none';
+        for (var i = 0; i < res.data.length; i++) {
+          var g = res.data[i];
+          var card = document.createElement('div');
+          card.className = 'gh-card';
+          card.setAttribute('data-game-code', g.game_code);
+
+          var date = new Date(g.created_at);
+          var dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+
+          card.innerHTML =
+            '<div class="gh-card-header">' +
+              '<span class="history-badge">' + (g.status === 'final' ? 'FINAL' : 'LIVE') + '</span>' +
+              '<span class="history-sub-label">' + dateStr + '</span>' +
+            '</div>' +
+            '<div class="gh-card-body">' +
+              '<div class="gh-team"><div class="gh-team-name">' + escHtml(g.home_team_name || 'Home') + '</div>' +
+              '<div class="gh-score home">' + g.home_score + '</div></div>' +
+              '<div class="gh-vs">VS</div>' +
+              '<div class="gh-team"><div class="gh-team-name">' + escHtml(g.away_team_name || 'Away') + '</div>' +
+              '<div class="gh-score away">' + g.away_score + '</div></div>' +
+            '</div>';
+
+          card.addEventListener('click', (function(gc) {
+            return function() { openGameDetail(gc); };
+          })(g.game_code));
+
+          gameHistoryList.appendChild(card);
+        }
+      });
+  }
+
+  function openGameDetail(code) {
+    // Load game and scoring plays, then show summary
+    sb.from('games').select('*').eq('game_code', code).single().then(function(gRes) {
+      if (gRes.error || !gRes.data) return;
+      var g = gRes.data;
+
+      sb.from('scoring_plays').select('*').eq('game_code', code).order('play_order', { ascending: true }).then(function(pRes) {
+        var plays = (pRes.data || []);
+
+        // Populate summary state and show
+        homeScore = g.home_score || 0;
+        awayScore = g.away_score || 0;
+        awayTeamName = g.away_team_name || 'Opponent';
+        gameCode = g.game_code;
+
+        // Reconstruct playerStats from game data
+        var isHome = (g.home_team_code === teamCode);
+        playerStats = isHome ? (g.home_player_stats || {}) : (g.away_player_stats || {});
+        activeRoster = Object.keys(playerStats);
+        scoringPlays = plays;
+
+        showSummary();
+      });
+    });
+  }
+
+  historyBackBtn.addEventListener('click', showSetup);
+
+  // ── Spectator View ──
+
+  function checkSpectatorMode() {
+    var params = new URLSearchParams(window.location.search);
+    var gc = params.get('game');
+    if (!gc) return false;
+    isSpectatorView = true;
+    document.querySelector('header').style.display = 'none';
+    spectatorScreen.style.display = 'block';
+    loadSpectatorGame(gc);
+    return true;
+  }
+
+  function loadSpectatorGame(code) {
+    sb.from('games').select('*').eq('game_code', code).single().then(function(gRes) {
+      if (gRes.error || !gRes.data) {
+        document.getElementById('spec-not-found').style.display = '';
+        return;
+      }
+
+      sb.from('scoring_plays').select('*').eq('game_code', code).order('play_order', { ascending: false }).then(function(pRes) {
+        renderSpectatorView(gRes.data, pRes.data || []);
+
+        // Start polling if live
+        if (gRes.data.status === 'live') {
+          spectatorPollTimer = setInterval(function() {
+            pollSpectatorUpdate(code);
+          }, 5000);
+        }
+      });
+    });
+  }
+
+  function pollSpectatorUpdate(code) {
+    sb.from('games').select('*').eq('game_code', code).single().then(function(gRes) {
+      if (gRes.error || !gRes.data) return;
+      sb.from('scoring_plays').select('*').eq('game_code', code).order('play_order', { ascending: false }).then(function(pRes) {
+        renderSpectatorView(gRes.data, pRes.data || []);
+        if (gRes.data.status === 'final' && spectatorPollTimer) {
+          clearInterval(spectatorPollTimer);
+          spectatorPollTimer = null;
+        }
+      });
+    });
+  }
+
+  function renderSpectatorView(game, plays) {
+    var statusEl = document.getElementById('spec-status');
+    var quarterEl = document.getElementById('spec-quarter');
+    var homeNameEl = document.getElementById('spec-home-name');
+    var awayNameEl = document.getElementById('spec-away-name');
+    var homeScoreEl = document.getElementById('spec-home-score');
+    var awayScoreEl = document.getElementById('spec-away-score');
+    var homeLogoEl = document.getElementById('spec-home-logo');
+    var awayLogoEl = document.getElementById('spec-away-logo');
+    var feedList = document.getElementById('spec-feed-list');
+    var feedEmpty = document.getElementById('spec-feed-empty');
+
+    if (game.status === 'final') {
+      statusEl.textContent = 'FINAL';
+      statusEl.className = 'spec-status final';
+    } else {
+      statusEl.textContent = 'LIVE';
+      statusEl.className = 'spec-status live-pulse';
+    }
+    quarterEl.textContent = 'Q' + (game.current_quarter || 1);
+
+    homeNameEl.textContent = game.home_team_name || 'HOME';
+    awayNameEl.textContent = game.away_team_name || 'AWAY';
+    homeScoreEl.textContent = game.home_score || 0;
+    awayScoreEl.textContent = game.away_score || 0;
+
+    if (game.home_team_logo) {
+      homeLogoEl.innerHTML = '<img src="' + game.home_team_logo + '" alt="">';
+    } else {
+      homeLogoEl.innerHTML = '';
+    }
+    if (game.away_team_logo) {
+      awayLogoEl.innerHTML = '<img src="' + game.away_team_logo + '" alt="">';
+    } else {
+      awayLogoEl.innerHTML = '';
+    }
+
+    // Scoring plays feed
+    if (plays.length === 0) {
+      feedEmpty.style.display = '';
+      feedList.innerHTML = '';
+    } else {
+      feedEmpty.style.display = 'none';
+      var html = '';
+      for (var i = 0; i < plays.length; i++) {
+        var p = plays[i];
+        var teamLabel = p.team_side === 'home' ? (game.home_team_name || 'Home') : (game.away_team_name || 'Away');
+        html += '<div class="spec-play">' +
+          '<div class="spec-play-pts">+' + p.points + '</div>' +
+          '<div class="spec-play-detail">' + escHtml(p.player_name) + ' <span style="color:var(--text-3);font-size:0.65rem">(' + escHtml(teamLabel) + ')</span></div>' +
+          '<div class="spec-play-quarter">Q' + p.quarter + '</div></div>';
+      }
+      feedList.innerHTML = html;
+    }
+  }
+
+  // ══════════════════════════════
   // SCREEN MANAGEMENT
   // ══════════════════════════════
 
@@ -2322,6 +3477,10 @@
     setupScreen.style.display = 'none';
     attendanceScreen.style.display = 'none';
     rotationScreen.style.display = 'none';
+    gameSetupScreen.style.display = 'none';
+    summaryScreen.style.display = 'none';
+    gameHistoryScreen.style.display = 'none';
+    spectatorScreen.style.display = 'none';
     bottomBar.style.display = 'none';
     headerActions.innerHTML = '';
     document.querySelector('.header-inner').classList.remove('header-reversed');
@@ -2456,13 +3615,14 @@
       // Coming back mid-game: keep sub count, just clamp currentIndex
       midGameReturn = false;
       if (currentIndex >= groups.length) currentIndex = 0;
+      showRotation();
     } else {
       // Fresh game start
       currentIndex = 0;
       totalSubs = 0;
       subHistory = [];
+      showGameSetup();
     }
-    showRotation();
   }
 
   attBack.addEventListener('click', showSetup);
@@ -2489,6 +3649,22 @@
 
       card.appendChild(num);
       card.appendChild(nm);
+
+      // If game is active and this is a court player, add points badge and tap-to-score
+      if (gameCode && cls === 'court-p') {
+        var pts = (playerStats[names[i]] && playerStats[names[i]].pts) || 0;
+        if (pts > 0) {
+          var badge = document.createElement('div');
+          badge.className = 'p-pts';
+          badge.textContent = pts + ' PTS';
+          card.appendChild(badge);
+        }
+        (function(name) {
+          card.style.cursor = 'pointer';
+          card.addEventListener('click', function() { openScoringModal(name); });
+        })(names[i]);
+      }
+
       container.appendChild(card);
     }
   }
@@ -2510,6 +3686,22 @@
 
     renderPlayerCards(courtPlayers, courtGroup, 'court-p');
     renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+
+    // Game score row (only visible when game is active)
+    if (gameCode) {
+      sbGameScore.style.display = '';
+      sbHomeScoreVal.textContent = homeScore;
+      sbAwayScoreVal.textContent = awayScore;
+      sbHomeAbbr.textContent = (teamName || 'HOME').substring(0, 4).toUpperCase();
+      sbAwayAbbr.textContent = (awayTeamName || 'AWAY').substring(0, 4).toUpperCase();
+      if (teamLogo) { sbHomeLogo.style.backgroundImage = 'url(' + teamLogo + ')'; sbHomeLogo.style.backgroundSize = 'cover'; sbHomeLogo.style.display = ''; } else { sbHomeLogo.style.display = 'none'; }
+      if (awayTeamLogo) { sbAwayLogo.style.backgroundImage = 'url(' + awayTeamLogo + ')'; sbAwayLogo.style.backgroundSize = 'cover'; sbAwayLogo.style.display = ''; } else { sbAwayLogo.style.display = 'none'; }
+      oppScoring.style.display = '';
+      oppScoringLabel.textContent = (awayTeamName || 'OPP').substring(0, 6).toUpperCase();
+    } else {
+      sbGameScore.style.display = 'none';
+      oppScoring.style.display = 'none';
+    }
 
     // Scoreboard quarter dots
     sbQuarterDots.innerHTML = '';
@@ -2606,6 +3798,12 @@
     });
     headerActions.appendChild(backBtn);
 
+    // Show/hide game score row and opponent scoring panel
+    if (gameCode) {
+      sbGameScore.style.display = '';
+      oppScoring.style.display = '';
+    }
+
     render();
   }
 
@@ -2629,7 +3827,11 @@
 
   function nextSub() {
     var totalExpectedSubs = numQuarters * subsPerQuarter;
-    if (totalSubs >= totalExpectedSubs) return;
+    if (totalSubs >= totalExpectedSubs) {
+      // Game is over — if we have an active game, end it
+      if (gameCode && gameStatus === 'live') endGame();
+      return;
+    }
 
     var prevGroup = groups[currentIndex].slice();
     currentIndex = (currentIndex + 1) % groups.length;
@@ -2643,6 +3845,11 @@
       onCourt: newGroup,
       offCourt: prevGroup
     });
+
+    // Update current quarter in game state
+    if (gameCode) {
+      syncGameToSupabase();
+    }
 
     render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2672,11 +3879,24 @@
     quarterLength = 8;
     subHistory = [];
     teamCode = '';
+    // Clear game state
+    gameCode = '';
+    gameSide = '';
+    gameStatus = 'live';
+    homeScore = 0;
+    awayScore = 0;
+    awayTeamName = '';
+    awayTeamLogo = '';
+    playerStats = {};
+    scoringPlays = [];
+    playOrderCounter = 0;
     localStorage.removeItem(STORAGE_ROSTER);
     localStorage.removeItem(STORAGE_TEAM);
     localStorage.removeItem(STORAGE_LOGO);
     localStorage.removeItem(STORAGE_GAME_FORMAT);
     localStorage.removeItem(STORAGE_TEAM_CODE);
+    localStorage.removeItem(STORAGE_GAME_CODE);
+    localStorage.removeItem(STORAGE_GAME_SIDE);
     closeResetModal();
     showSetup();
   }
@@ -2804,6 +4024,7 @@
   // ══════════════════════════════
 
   startBtn.addEventListener('click', goToAttendance);
+  gameHistoryBtn.addEventListener('click', showGameHistory);
   nextSubBtn.addEventListener('click', nextSub);
   modalCancel.addEventListener('click', closeEditModal);
   modalSave.addEventListener('click', saveEditModal);
@@ -2876,6 +4097,17 @@
   }
 
   function finishInit() {
+    // Check for spectator mode first (?game=XXXX in URL)
+    if (checkSpectatorMode()) return;
+
+    // Restore saved game state
+    var savedGameCode = localStorage.getItem(STORAGE_GAME_CODE);
+    var savedGameSide = localStorage.getItem(STORAGE_GAME_SIDE);
+    if (savedGameCode) {
+      gameCode = savedGameCode;
+      gameSide = savedGameSide || 'home';
+    }
+
     if (roster.length >= 5) {
       showAttendance();
     } else {
