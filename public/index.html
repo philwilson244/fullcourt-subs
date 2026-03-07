@@ -176,16 +176,17 @@
     background: none;
     border: 1px solid var(--border);
     color: var(--text-2);
-    padding: 6px 16px;
-    border-radius: 4px;
+    padding: 12px 24px;
+    border-radius: 6px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.5rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.15s;
     -webkit-tap-highlight-color: transparent;
+    flex: 1;
   }
   .rot-action-btn:active {
     background: var(--surface-2);
@@ -201,8 +202,10 @@
     background: none;
     border: none;
     color: var(--cyan);
-    font-size: 1.1rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
     font-weight: 700;
+    letter-spacing: 1.5px;
     cursor: pointer;
     padding: 4px 8px;
     -webkit-tap-highlight-color: transparent;
@@ -1636,7 +1639,6 @@
 
   <div class="rotation-actions" id="rotation-actions">
     <button class="rot-action-btn" id="rot-history-btn">History</button>
-    <button class="rot-action-btn" id="rot-attendance-btn">Attendance</button>
     <button class="rot-action-btn" id="rot-roster-btn">Roster</button>
     <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
   </div>
@@ -1759,7 +1761,7 @@
   var statRemaining = document.getElementById('stat-remaining');
   var rotationList = document.getElementById('rotation-list');
   var rotHistoryBtn = document.getElementById('rot-history-btn');
-  var rotAttendanceBtn = document.getElementById('rot-attendance-btn');
+
   var rotRosterBtn = document.getElementById('rot-roster-btn');
   var rotResetBtn = document.getElementById('rot-reset-btn');
   var nextSubBtn = document.getElementById('next-sub-btn');
@@ -2478,7 +2480,7 @@
     // Back button in header (now on left side)
     var backBtn = document.createElement('button');
     backBtn.className = 'back-btn';
-    backBtn.innerHTML = '&#9664;'; // ◀
+    backBtn.innerHTML = '&#9664; Edit Attendance';
     backBtn.addEventListener('click', function() {
       midGameReturn = true;
       showAttendance();
@@ -2565,10 +2567,6 @@
 
   // ── Rotation Action Row ──
   rotHistoryBtn.addEventListener('click', openHistoryModal);
-  rotAttendanceBtn.addEventListener('click', function() {
-    midGameReturn = true;
-    showAttendance();
-  });
   rotRosterBtn.addEventListener('click', openEditModal);
   rotResetBtn.addEventListener('click', openResetModal);
 
