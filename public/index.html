@@ -817,7 +817,11 @@
     text-align: center;
     padding: 4px 16px 10px;
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s;
   }
+  .sb-clock:active { background: rgba(255,107,43,0.05); }
 
   .sb-time {
     font-family: 'Orbitron', sans-serif;
@@ -837,6 +841,18 @@
     color: var(--text-3);
     text-transform: uppercase;
     margin-top: 6px;
+  }
+
+  .sb-time-running { animation: text-glow 2s ease-in-out infinite; }
+  .sb-time-paused { opacity: 0.7; }
+  .sb-time-expired {
+    color: #FF3B4A !important;
+    text-shadow: 0 0 20px rgba(255,59,74,0.6), 0 0 40px rgba(255,59,74,0.2) !important;
+    animation: pulse-expired 0.5s ease-in-out 3;
+  }
+  @keyframes pulse-expired {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
   }
 
   .sb-stats {
@@ -2168,6 +2184,28 @@
   .share-btn-secondary:active {
     background: var(--surface-3);
   }
+  .share-btn-tertiary {
+    background: transparent;
+    color: var(--cyan);
+    border: 1px solid rgba(255,107,43,0.3);
+  }
+  .share-btn-tertiary:active {
+    background: rgba(255,107,43,0.08);
+  }
+
+  .scorekeeper-badge {
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    padding: 6px;
+    margin: 0 20px 8px;
+    border: 1px solid rgba(255,107,43,0.2);
+    border-radius: 4px;
+    background: rgba(255,107,43,0.04);
+  }
 
   .hidden { display: none !important; }
 </style>
@@ -2317,6 +2355,7 @@
     <div class="share-btns">
       <button class="share-btn share-btn-primary" id="game-invite-coach" type="button">INVITE COACH</button>
       <button class="share-btn share-btn-secondary" id="game-code-copy" type="button">SPECTATOR LINK</button>
+      <button class="share-btn share-btn-tertiary" id="game-scorekeeper-share" type="button">SCOREKEEPER</button>
     </div>
   </div>
 
@@ -2362,6 +2401,8 @@
     <div class="team-sub" id="display-team-subtitle"></div>
     <div class="team-edit-hint">TAP TO EDIT</div>
   </div>
+
+  <div class="scorekeeper-badge" id="scorekeeper-badge" style="display:none">SCOREKEEPER MODE</div>
 
   <div class="scoreboard">
     <div class="sb-quarter">
@@ -2434,6 +2475,7 @@
   </div>
 
   <div class="rotation-actions" id="rotation-actions">
+    <button class="rot-action-btn" id="rot-scorekeeper-btn" style="display:none">Scorekeeper</button>
     <button class="rot-action-btn" id="rot-roster-btn">Edit Roster</button>
     <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
   </div>
@@ -2723,6 +2765,9 @@
   var gameSetupBack = document.getElementById('game-setup-back');
   var gameSetupGo = document.getElementById('game-setup-go');
   var gameInviteCoach = document.getElementById('game-invite-coach');
+  var gameScorekeeperShare = document.getElementById('game-scorekeeper-share');
+  var rotScorekeeperBtn = document.getElementById('rot-scorekeeper-btn');
+  var scorekeeperBadge = document.getElementById('scorekeeper-badge');
 
   // Join game DOM refs
   var joinGameScreen = document.getElementById('join-game-screen');
@@ -2799,6 +2844,15 @@
   var spectatorPollTimer = null;
   var coachPollTimer = null;
   var scoringPlayerName = '';
+
+  // Clock state
+  var clockSeconds = 0;
+  var clockRunning = false;
+  var clockInterval = null;
+
+  // Scorekeeper state
+  var isScorekeeper = false;
+  var scorekeeperPollTimer = null;
 
   // ══════════════════════════════
   // SUPABASE SYNC
@@ -3301,6 +3355,94 @@
     render();
   }
 
+  // ── Game Clock ──
+  function formatClock(totalSeconds) {
+    var m = Math.floor(totalSeconds / 60);
+    var s = totalSeconds % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function initClock() {
+    clockSeconds = quarterLength * 60;
+    clockRunning = false;
+    if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+    renderClock();
+  }
+
+  function startClock() {
+    if (clockRunning || clockSeconds <= 0) return;
+    clockRunning = true;
+    clockInterval = setInterval(tickClock, 1000);
+    renderClock();
+  }
+
+  function pauseClock() {
+    clockRunning = false;
+    if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+    renderClock();
+  }
+
+  function toggleClock() {
+    if (clockRunning) pauseClock();
+    else startClock();
+  }
+
+  function tickClock() {
+    if (clockSeconds <= 0) {
+      pauseClock();
+      clockSeconds = 0;
+      onClockExpired();
+      return;
+    }
+    clockSeconds--;
+    renderClock();
+    if (clockSeconds <= 0) {
+      pauseClock();
+      onClockExpired();
+    }
+  }
+
+  function resetClock() {
+    pauseClock();
+    clockSeconds = quarterLength * 60;
+    renderClock();
+  }
+
+  function onClockExpired() {
+    sbTime.classList.add('sb-time-expired');
+    setTimeout(function() {
+      sbTime.classList.remove('sb-time-expired');
+    }, 3000);
+    renderClock();
+  }
+
+  function renderClock() {
+    if (!sbTime) return;
+    sbTime.textContent = formatClock(clockSeconds);
+    var totalExpectedSubs = numQuarters * subsPerQuarter;
+    var currentQ_c = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
+    var gameOver_c = totalSubs >= totalExpectedSubs;
+
+    if (gameOver_c) {
+      sbTime.classList.remove('sb-time-running', 'sb-time-paused');
+      sbTimeLabel.textContent = 'Q' + currentQ_c + ' \u2014 FINAL';
+      return;
+    }
+
+    if (clockRunning) {
+      sbTime.classList.add('sb-time-running');
+      sbTime.classList.remove('sb-time-paused');
+      sbTimeLabel.textContent = 'Q' + currentQ_c + ' \u2014 TAP TO PAUSE';
+    } else if (clockSeconds <= 0) {
+      sbTime.classList.remove('sb-time-running', 'sb-time-paused');
+      sbTimeLabel.textContent = 'Q' + currentQ_c + ' \u2014 TIME EXPIRED';
+    } else {
+      sbTime.classList.remove('sb-time-running');
+      sbTime.classList.add('sb-time-paused');
+      sbTimeLabel.textContent = 'Q' + currentQ_c + ' \u2014 TAP TO START';
+    }
+  }
+
   function recordScore(playerName, points, side) {
     if (side === 'home') {
       homeScore += points;
@@ -3366,6 +3508,7 @@
   }
 
   function endGame() {
+    if (isScorekeeper) return;
     gameStatus = 'final';
     if (gameCode) {
       sb.from('games').update({ status: 'final', updated_at: new Date().toISOString() })
@@ -3449,6 +3592,43 @@
     }
   });
 
+  // ── Scorekeeper Share Handlers ──
+
+  function buildScorekeeperLink() {
+    return window.location.origin + window.location.pathname +
+      '?score=' + gameCode + '&side=' + (gameSide || 'home') + '&spq=' + subsPerQuarter;
+  }
+
+  gameScorekeeperShare.addEventListener('click', function() {
+    var skLink = buildScorekeeperLink();
+    if (navigator.share) {
+      navigator.share({
+        title: 'Keep score on Fullcourt',
+        text: (teamName || 'A team') + ' needs a scorekeeper!',
+        url: skLink
+      }).catch(function() {
+        copyToClipboard(skLink, gameScorekeeperShare, 'SCOREKEEPER');
+      });
+    } else {
+      copyToClipboard(skLink, gameScorekeeperShare, 'SCOREKEEPER');
+    }
+  });
+
+  rotScorekeeperBtn.addEventListener('click', function() {
+    var skLink = buildScorekeeperLink();
+    if (navigator.share) {
+      navigator.share({
+        title: 'Keep score on Fullcourt',
+        text: (teamName || 'A team') + ' needs a scorekeeper!',
+        url: skLink
+      }).catch(function() {
+        copyToClipboard(skLink, rotScorekeeperBtn, 'Scorekeeper');
+      });
+    } else {
+      copyToClipboard(skLink, rotScorekeeperBtn, 'Scorekeeper');
+    }
+  });
+
   // ── Scoring Modal Events ──
 
   scoringCancelBtn.addEventListener('click', closeScoringModal);
@@ -3472,6 +3652,16 @@
       updateScoringModalStats();
     });
   }
+
+  // ── Clock Tap Handler ──
+  document.querySelector('.sb-clock').addEventListener('click', function() {
+    if (rotationScreen.style.display === 'none') return;
+    if (isSpectatorView) return;
+    var totalExpectedSubs = numQuarters * subsPerQuarter;
+    if (totalSubs >= totalExpectedSubs) return; // game over
+    if (clockSeconds === 0 && !clockRunning) initClock();
+    toggleClock();
+  });
 
   // ── Opponent Scoring Events ──
 
@@ -3554,6 +3744,10 @@
     playerStats = {};
     scoringPlays = [];
     playOrderCounter = 0;
+    clockSeconds = 0;
+    clockRunning = false;
+    if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+    isScorekeeper = false;
     localStorage.removeItem(STORAGE_GAME_CODE);
     localStorage.removeItem(STORAGE_GAME_SIDE);
     showSetup();
@@ -3783,6 +3977,140 @@
   joinConfirmBtn.addEventListener('click', confirmJoinGame);
 
   // ══════════════════════════════
+  // SCOREKEEPER MODE
+  // ══════════════════════════════
+
+  function checkScorekeeperMode() {
+    var params = new URLSearchParams(window.location.search);
+    var scoreCode = params.get('score');
+    var side = params.get('side');
+    var spq = parseInt(params.get('spq')) || 1;
+    if (!scoreCode || !side) return false;
+    if (side !== 'home' && side !== 'away') return false;
+
+    isScorekeeper = true;
+    gameSide = side;
+    gameCode = scoreCode;
+    gameStatus = 'live';
+    subsPerQuarter = spq;
+
+    // Hide header, show loading
+    document.querySelector('header').style.display = 'none';
+
+    sb.from('games').select('*').eq('game_code', scoreCode).single().then(function(gRes) {
+      if (gRes.error || !gRes.data) {
+        // Show spectator not-found as fallback error
+        document.getElementById('spec-not-found').style.display = '';
+        spectatorScreen.style.display = 'block';
+        return;
+      }
+      var g = gRes.data;
+      if (g.status === 'final') gameStatus = 'final';
+
+      // Load game settings
+      numQuarters = g.num_quarters || 4;
+      quarterLength = g.quarter_length || 8;
+      homeScore = g.home_score || 0;
+      awayScore = g.away_score || 0;
+
+      // Set team names from perspective of scorekeeper's side
+      if (side === 'home') {
+        teamName = g.home_team_name || 'Home';
+        teamLogo = g.home_team_logo || '';
+        awayTeamName = g.away_team_name || 'Away';
+        awayTeamLogo = g.away_team_logo || '';
+      } else {
+        teamName = g.away_team_name || 'Away';
+        teamLogo = g.away_team_logo || '';
+        awayTeamName = g.home_team_name || 'Home';
+        awayTeamLogo = g.home_team_logo || '';
+      }
+
+      // Extract roster + stats from player_stats JSONB
+      var statsData = (side === 'home') ? g.home_player_stats : g.away_player_stats;
+      var historyData = (side === 'home') ? g.home_sub_history : g.away_sub_history;
+
+      activeRoster = [];
+      playerStats = {};
+      if (statsData && typeof statsData === 'object') {
+        var names = Object.keys(statsData);
+        for (var i = 0; i < names.length; i++) {
+          activeRoster.push(names[i]);
+          playerStats[names[i]] = statsData[names[i]];
+        }
+      }
+      roster = activeRoster.slice();
+
+      // Rebuild rotation groups and restore state
+      groups = buildGroups(activeRoster);
+      subHistory = historyData || [];
+      totalSubs = subHistory.length;
+      currentIndex = totalSubs % groups.length;
+
+      // Load scoring plays
+      sb.from('scoring_plays').select('*').eq('game_code', scoreCode)
+        .order('play_order', { ascending: true }).then(function(pRes) {
+        scoringPlays = pRes.data || [];
+        playOrderCounter = scoringPlays.length > 0 ? scoringPlays[scoringPlays.length - 1].play_order : 0;
+
+        // Clean URL
+        var cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+
+        // Show header again and go to rotation
+        document.querySelector('header').style.display = '';
+        showRotation();
+
+        // Start polling to stay synced with coach
+        startScorekeeperPolling();
+      });
+    });
+
+    return true;
+  }
+
+  function startScorekeeperPolling() {
+    if (scorekeeperPollTimer) clearInterval(scorekeeperPollTimer);
+    scorekeeperPollTimer = setInterval(function() {
+      pollScorekeeperUpdate();
+    }, 6000);
+  }
+
+  function pollScorekeeperUpdate() {
+    if (!gameCode) return;
+    sb.from('games').select('*').eq('game_code', gameCode).single().then(function(res) {
+      if (res.error || !res.data) return;
+      var g = res.data;
+      var side = gameSide;
+
+      // Update scores
+      homeScore = g.home_score || 0;
+      awayScore = g.away_score || 0;
+
+      // Update rotation state from coach's sub_history
+      var historyData = (side === 'home') ? g.home_sub_history : g.away_sub_history;
+      if (historyData && historyData.length !== subHistory.length) {
+        subHistory = historyData;
+        totalSubs = subHistory.length;
+        currentIndex = totalSubs % groups.length;
+      }
+
+      // Update player stats (last-write-wins)
+      var statsData = (side === 'home') ? g.home_player_stats : g.away_player_stats;
+      if (statsData) {
+        playerStats = statsData;
+      }
+
+      // Check for game end
+      if (g.status === 'final' && gameStatus !== 'final') {
+        gameStatus = 'final';
+      }
+
+      render();
+    });
+  }
+
+  // ══════════════════════════════
   // SPECTATOR VIEW
   // ══════════════════════════════
 
@@ -3902,8 +4230,10 @@
     bottomBar.style.display = 'none';
     headerActions.innerHTML = '';
     document.querySelector('.header-inner').classList.remove('header-reversed');
-    // Clear coach poll timer when leaving rotation
+    // Clear timers when leaving rotation
     if (coachPollTimer) { clearInterval(coachPollTimer); coachPollTimer = null; }
+    if (clockInterval) { clearInterval(clockInterval); clockInterval = null; clockRunning = false; }
+    if (scorekeeperPollTimer) { clearInterval(scorekeeperPollTimer); scorekeeperPollTimer = null; }
   }
 
   // ══════════════════════════════
@@ -4149,8 +4479,8 @@
       sbQuarterDots.appendChild(dot);
     }
     // Scoreboard clock
-    sbTime.textContent = quarterLength + ':00';
-    sbTimeLabel.textContent = 'Q' + currentQ + (gameOver ? ' \u2014 FINAL' : '');
+    renderClock();
+    if (gameOver && clockRunning) pauseClock();
 
     statPlayers.textContent = activeRoster.length;
     statSubs.textContent = totalSubs;
@@ -4245,6 +4575,27 @@
       }, 8000);
     }
 
+    // Init clock on fresh game start
+    if (totalSubs === 0 && clockSeconds === 0) initClock();
+
+    // Scorekeeper restrictions
+    if (isScorekeeper) {
+      bottomBar.style.display = 'none';
+      document.getElementById('rotation-actions').style.display = 'none';
+      headerActions.innerHTML = '';
+      document.querySelector('.header-inner').classList.remove('header-reversed');
+      scorekeeperBadge.style.display = '';
+    } else {
+      scorekeeperBadge.style.display = 'none';
+    }
+
+    // Show scorekeeper share button for coaches with active game
+    if (gameCode && !isScorekeeper) {
+      rotScorekeeperBtn.style.display = '';
+    } else {
+      rotScorekeeperBtn.style.display = 'none';
+    }
+
     render();
   }
 
@@ -4267,6 +4618,7 @@
   }
 
   function nextSub() {
+    if (isScorekeeper) return;
     var totalExpectedSubs = numQuarters * subsPerQuarter;
     if (totalSubs >= totalExpectedSubs) {
       // Game is over — if we have an active game, end it
@@ -4274,14 +4626,19 @@
       return;
     }
 
+    var prevQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
     var prevGroup = groups[currentIndex].slice();
     currentIndex = (currentIndex + 1) % groups.length;
     totalSubs++;
     var newGroup = groups[currentIndex].slice();
 
+    // Reset clock on quarter change
+    var newQ = getSubQuarter(totalSubs);
+    if (newQ !== prevQ) resetClock();
+
     subHistory.push({
       subNumber: totalSubs,
-      quarter: getSubQuarter(totalSubs),
+      quarter: newQ,
       subInQuarter: getSubWithinQuarter(totalSubs),
       onCourt: newGroup,
       offCourt: prevGroup
@@ -4331,6 +4688,10 @@
     playerStats = {};
     scoringPlays = [];
     playOrderCounter = 0;
+    isScorekeeper = false;
+    clockSeconds = 0;
+    clockRunning = false;
+    if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
     localStorage.removeItem(STORAGE_ROSTER);
     localStorage.removeItem(STORAGE_TEAM);
     localStorage.removeItem(STORAGE_LOGO);
@@ -4539,7 +4900,10 @@
   }
 
   function finishInit() {
-    // Check for join mode first (?join=XXXX in URL)
+    // Check for scorekeeper mode first (?score=XXXX&side=home in URL)
+    if (checkScorekeeperMode()) return;
+
+    // Check for join mode (?join=XXXX in URL)
     if (checkJoinMode()) return;
 
     // Check for spectator mode (?game=XXXX in URL)
