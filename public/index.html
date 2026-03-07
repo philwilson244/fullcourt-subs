@@ -1683,6 +1683,51 @@
   }
   .score-btn:active .score-btn-label { color: var(--bg); }
 
+  .score-section-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.4rem; font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+
+  .scoring-player-stats {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-3);
+    margin-bottom: 12px;
+  }
+
+  .stat-btn {
+    flex: 1;
+    padding: 18px 8px;
+    background: var(--surface-2);
+    border: 1px solid rgba(255,45,120,0.15);
+    border-radius: 8px;
+    color: var(--magenta);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem; font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stat-btn:active {
+    background: var(--magenta);
+    color: var(--bg);
+    box-shadow: 0 0 24px rgba(255,45,120,0.4);
+  }
+  .stat-btn .score-btn-label { color: var(--text-3); }
+  .stat-btn:active .score-btn-label { color: var(--bg); }
+
+  .stat-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   /* Player points badge on court cards */
   .p-pts {
     padding: 0 12px;
@@ -2019,6 +2064,111 @@
     margin-bottom: 8px;
   }
 
+  /* === JOIN GAME SCREEN === */
+  #join-game-screen {
+    display: none;
+    position: relative; z-index: 1;
+    max-width: 500px; margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+  .join-game-info {
+    text-align: center;
+    padding: 20px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-glow);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .join-game-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem; font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .join-game-code {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem; font-weight: 900;
+    letter-spacing: 8px;
+    color: var(--cyan);
+    text-shadow: 0 0 14px rgba(255,107,43,0.5);
+    margin-bottom: 8px;
+  }
+  .join-game-matchup {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .join-team-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .join-team-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem; font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .join-team-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem; font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--text-1);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .join-team-roster {
+    font-size: 0.7rem;
+    color: var(--text-2);
+  }
+  .join-error {
+    color: #FF4444;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 1.2em;
+  }
+  .share-btns {
+    display: flex; gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .share-btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem; font-weight: 800;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .share-btn-primary {
+    background: var(--cyan);
+    color: var(--bg);
+    border: 1px solid var(--cyan);
+  }
+  .share-btn-primary:active {
+    box-shadow: 0 0 20px rgba(255,107,43,0.5);
+  }
+  .share-btn-secondary {
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid var(--border);
+  }
+  .share-btn-secondary:active {
+    background: var(--surface-3);
+  }
+
   .hidden { display: none !important; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2162,16 +2312,44 @@
 
   <div class="game-code-display" id="game-code-section-gs" style="display:none">
     <div class="game-code-val" id="game-code-val"></div>
-    <div class="game-code-hint">Share this code for the live scoreboard</div>
+    <div class="game-code-hint">Share links for the game below</div>
     <div class="game-code-link" id="game-code-link"></div>
-    <div style="margin-top:10px">
-      <button class="code-btn code-btn-secondary" id="game-code-copy" type="button">COPY LINK</button>
+    <div class="share-btns">
+      <button class="share-btn share-btn-primary" id="game-invite-coach" type="button">INVITE COACH</button>
+      <button class="share-btn share-btn-secondary" id="game-code-copy" type="button">SPECTATOR LINK</button>
     </div>
   </div>
 
   <div class="att-actions" style="margin-top:20px">
     <button class="att-btn-secondary" id="game-setup-back">BACK</button>
     <button class="start-btn" id="game-setup-go" style="flex:1">START GAME</button>
+  </div>
+</div>
+
+<!-- ═══ JOIN GAME ═══ -->
+<div id="join-game-screen">
+  <div class="setup-hero">
+    <h1>JOIN <span class="glow">GAME</span></h1>
+    <p>You've been invited to join as the away team.</p>
+  </div>
+
+  <div class="join-game-info">
+    <div class="join-game-label">GAME CODE</div>
+    <div class="join-game-code" id="join-game-code-display"></div>
+    <div class="join-game-matchup" id="join-game-matchup"></div>
+  </div>
+
+  <div class="join-team-preview">
+    <div class="join-team-label">YOUR TEAM</div>
+    <div class="join-team-name" id="join-team-name-display"></div>
+    <div class="join-team-roster" id="join-team-roster-count"></div>
+  </div>
+
+  <div class="join-error" id="join-error"></div>
+
+  <div class="att-actions" style="margin-top:20px">
+    <button class="att-btn-secondary" id="join-cancel-btn">CANCEL</button>
+    <button class="start-btn" id="join-confirm-btn" style="flex:1">JOIN GAME</button>
   </div>
 </div>
 
@@ -2339,10 +2517,19 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <h2 id="scoring-player-name">PLAYER</h2>
+    <div class="scoring-player-stats" id="scoring-player-stats-line"></div>
+    <div class="score-section-label">SCORING</div>
     <div class="score-btns">
       <button class="score-btn" data-pts="1">+1<span class="score-btn-label">FT</span></button>
       <button class="score-btn" data-pts="2">+2<span class="score-btn-label">FG</span></button>
       <button class="score-btn" data-pts="3">+3<span class="score-btn-label">3PT</span></button>
+    </div>
+    <div class="score-section-label" style="margin-top:16px">STATS</div>
+    <div class="score-btns">
+      <button class="stat-btn" data-stat="reb">REB<span class="score-btn-label">REBOUND</span></button>
+      <button class="stat-btn" data-stat="ast">AST<span class="score-btn-label">ASSIST</span></button>
+      <button class="stat-btn" data-stat="miss">MISS<span class="score-btn-label">MISSED</span></button>
+      <button class="stat-btn" data-stat="tov">TOV<span class="score-btn-label">TURNOVER</span></button>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="scoring-cancel">CLOSE</button>
@@ -2535,6 +2722,17 @@
   var gameCodeCopy = document.getElementById('game-code-copy');
   var gameSetupBack = document.getElementById('game-setup-back');
   var gameSetupGo = document.getElementById('game-setup-go');
+  var gameInviteCoach = document.getElementById('game-invite-coach');
+
+  // Join game DOM refs
+  var joinGameScreen = document.getElementById('join-game-screen');
+  var joinGameCodeDisplay = document.getElementById('join-game-code-display');
+  var joinGameMatchup = document.getElementById('join-game-matchup');
+  var joinTeamNameDisplay = document.getElementById('join-team-name-display');
+  var joinTeamRosterCount = document.getElementById('join-team-roster-count');
+  var joinError = document.getElementById('join-error');
+  var joinCancelBtn = document.getElementById('join-cancel-btn');
+  var joinConfirmBtn = document.getElementById('join-confirm-btn');
 
   // Scoreboard game score DOM refs
   var sbGameScore = document.getElementById('sb-game-score');
@@ -2599,6 +2797,7 @@
   var playOrderCounter = 0;
   var isSpectatorView = false;
   var spectatorPollTimer = null;
+  var coachPollTimer = null;
   var scoringPlayerName = '';
 
   // ══════════════════════════════
@@ -2998,7 +3197,7 @@
   function initPlayerStats() {
     playerStats = {};
     for (var i = 0; i < activeRoster.length; i++) {
-      playerStats[activeRoster[i]] = { pts: 0, fgm: 0, tpm: 0, ftm: 0 };
+      playerStats[activeRoster[i]] = { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0 };
     }
   }
 
@@ -3071,17 +3270,45 @@
     sb.from('games').update(update).eq('game_code', gameCode).then(function() {});
   }
 
+  function pollOpponentScore() {
+    if (!gameCode) return;
+    sb.from('games').select('home_score,away_score,status').eq('game_code', gameCode).single().then(function(res) {
+      if (res.error || !res.data) return;
+      var g = res.data;
+      // Update the opponent's score (the side we don't control)
+      if (gameSide === 'home') {
+        awayScore = g.away_score || 0;
+      } else {
+        homeScore = g.home_score || 0;
+      }
+      if (g.status === 'final' && gameStatus !== 'final') {
+        gameStatus = 'final';
+      }
+      render();
+    });
+  }
+
+  function recordStat(playerName, statType) {
+    if (!playerStats[playerName]) return;
+    playerStats[playerName][statType]++;
+    if (gameCode) syncGameToSupabase();
+    render();
+  }
+
   function recordScore(playerName, points, side) {
     if (side === 'home') {
       homeScore += points;
-      if (playerStats[playerName]) {
-        playerStats[playerName].pts += points;
-        if (points === 1) playerStats[playerName].ftm++;
-        else if (points === 2) playerStats[playerName].fgm++;
-        else if (points === 3) playerStats[playerName].tpm++;
-      }
     } else {
       awayScore += points;
+    }
+
+    // Update player stats if this is OUR player (not opponent)
+    var ourSide = gameSide || 'home';
+    if (side === ourSide && playerStats[playerName]) {
+      playerStats[playerName].pts += points;
+      if (points === 1) playerStats[playerName].ftm++;
+      else if (points === 2) playerStats[playerName].fgm++;
+      else if (points === 3) playerStats[playerName].tpm++;
     }
 
     playOrderCounter++;
@@ -3112,9 +3339,19 @@
     render();
   }
 
+  var scoringPlayerStatsLine = document.getElementById('scoring-player-stats-line');
+
+  function updateScoringModalStats() {
+    var s = playerStats[scoringPlayerName];
+    if (!s) { scoringPlayerStatsLine.textContent = ''; return; }
+    scoringPlayerStatsLine.textContent =
+      s.pts + ' PTS  ' + (s.reb || 0) + ' REB  ' + (s.ast || 0) + ' AST  ' + (s.miss || 0) + ' MISS  ' + (s.tov || 0) + ' TOV';
+  }
+
   function openScoringModal(name) {
     scoringPlayerName = name;
     scoringPlayerNameEl.textContent = name.toUpperCase();
+    updateScoringModalStats();
     scoringModal.classList.add('open');
   }
 
@@ -3167,13 +3404,42 @@
 
   gameSetupBack.addEventListener('click', showAttendance);
   gameSetupGo.addEventListener('click', startGame);
+  function copyToClipboard(text, btn, originalLabel) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'COPIED!';
+        setTimeout(function() { btn.textContent = originalLabel; }, 2000);
+      });
+    }
+  }
+
+  gameInviteCoach.addEventListener('click', function() {
+    var inviteLink = window.location.origin + window.location.pathname + '?join=' + gameCode;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Join my game on Fullcourt',
+        text: (teamName || 'A team') + ' has invited you to join their game!',
+        url: inviteLink
+      }).catch(function() {
+        copyToClipboard(inviteLink, gameInviteCoach, 'INVITE COACH');
+      });
+    } else {
+      copyToClipboard(inviteLink, gameInviteCoach, 'INVITE COACH');
+    }
+  });
+
   gameCodeCopy.addEventListener('click', function() {
     var link = window.location.origin + window.location.pathname + '?game=' + gameCode;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(link).then(function() {
-        gameCodeCopy.textContent = 'COPIED!';
-        setTimeout(function() { gameCodeCopy.textContent = 'COPY LINK'; }, 2000);
+    if (navigator.share) {
+      navigator.share({
+        title: 'Watch live on Fullcourt',
+        text: 'Watch the game live!',
+        url: link
+      }).catch(function() {
+        copyToClipboard(link, gameCodeCopy, 'SPECTATOR LINK');
       });
+    } else {
+      copyToClipboard(link, gameCodeCopy, 'SPECTATOR LINK');
     }
   });
 
@@ -3188,6 +3454,16 @@
       var pts = parseInt(this.getAttribute('data-pts'));
       recordScore(scoringPlayerName, pts, gameSide || 'home');
       closeScoringModal();
+    });
+  }
+
+  var statBtns = document.querySelectorAll('.stat-btn');
+  for (var sti = 0; sti < statBtns.length; sti++) {
+    statBtns[sti].addEventListener('click', function() {
+      var stat = this.getAttribute('data-stat');
+      recordStat(scoringPlayerName, stat);
+      // Update the stat line in the modal without closing
+      updateScoringModalStats();
     });
   }
 
@@ -3217,27 +3493,31 @@
     if (gameSide === 'away') {
       var tmp = homeName; homeName = oppName; oppName = tmp;
     }
+    var summaryOurScore = gameSide === 'away' ? awayScore : homeScore;
+    var summaryTheirScore = gameSide === 'away' ? homeScore : awayScore;
     summaryFinalScore.innerHTML =
       '<div class="summary-team"><div class="summary-team-name">' + escHtml(teamName || 'Home') + '</div>' +
-      '<div class="summary-team-score home">' + homeScore + '</div></div>' +
+      '<div class="summary-team-score home">' + summaryOurScore + '</div></div>' +
       '<div class="summary-vs">VS</div>' +
       '<div class="summary-team"><div class="summary-team-name">' + escHtml(awayTeamName || 'Opponent') + '</div>' +
-      '<div class="summary-team-score away">' + awayScore + '</div></div>';
+      '<div class="summary-team-score away">' + summaryTheirScore + '</div></div>';
 
     // Player stats table
     var hasStats = false;
     var rows = '';
     for (var i = 0; i < activeRoster.length; i++) {
       var name = activeRoster[i];
-      var s = playerStats[name] || { pts: 0, fgm: 0, tpm: 0, ftm: 0 };
-      if (s.pts > 0) hasStats = true;
+      var s = playerStats[name] || { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0 };
+      if (s.pts > 0 || s.reb > 0 || s.ast > 0 || s.miss > 0 || s.tov > 0) hasStats = true;
       rows += '<tr><td>' + escHtml(name) + '</td><td class="pts-cell">' + s.pts + '</td>' +
-        '<td>' + s.fgm + '</td><td>' + s.tpm + '</td><td>' + s.ftm + '</td></tr>';
+        '<td>' + s.fgm + '</td><td>' + s.tpm + '</td><td>' + s.ftm + '</td>' +
+        '<td>' + (s.reb || 0) + '</td><td>' + (s.ast || 0) + '</td>' +
+        '<td>' + (s.miss || 0) + '</td><td>' + (s.tov || 0) + '</td></tr>';
     }
     if (hasStats || activeRoster.length > 0) {
       summaryPlayerStats.innerHTML =
-        '<table class="stat-table"><thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th></tr></thead><tbody>' +
-        rows + '</tbody></table>';
+        '<div class="stat-table-wrap"><table class="stat-table"><thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>REB</th><th>AST</th><th>MISS</th><th>TOV</th></tr></thead><tbody>' +
+        rows + '</tbody></table></div>';
     } else {
       summaryPlayerStats.innerHTML = '<div class="history-empty">No player stats.</div>';
     }
@@ -3369,6 +3649,137 @@
 
   // ── Spectator View ──
 
+  // ══════════════════════════════
+  // JOIN GAME (Away Coach)
+  // ══════════════════════════════
+
+  var pendingJoinCode = '';
+
+  function checkJoinMode() {
+    var params = new URLSearchParams(window.location.search);
+    var joinCode = params.get('join');
+    if (!joinCode) return false;
+
+    // If user doesn't have a team set up, save join code for later
+    if (roster.length < 5) {
+      localStorage.setItem('fullcourt_pending_join', joinCode);
+      return false;
+    }
+
+    showJoinScreen(joinCode);
+    return true;
+  }
+
+  function showJoinScreen(code) {
+    pendingJoinCode = code;
+    hideAll();
+    joinGameScreen.style.display = 'block';
+    joinGameCodeDisplay.textContent = code;
+    joinError.textContent = '';
+    joinConfirmBtn.textContent = 'JOIN GAME';
+    joinConfirmBtn.disabled = false;
+
+    // Show the local team info
+    joinTeamNameDisplay.textContent = teamName || 'YOUR TEAM';
+    joinTeamRosterCount.textContent = roster.length + ' players on roster';
+
+    // Fetch game info from Supabase to show matchup
+    joinGameMatchup.textContent = 'Loading...';
+    sb.from('games').select('*').eq('game_code', code).single().then(function(res) {
+      if (res.error || !res.data) {
+        joinGameMatchup.textContent = '';
+        joinError.textContent = 'Game not found. Check the link.';
+        joinConfirmBtn.disabled = true;
+        return;
+      }
+      var g = res.data;
+      if (g.status === 'final') {
+        joinGameMatchup.textContent = '';
+        joinError.textContent = 'This game has already ended.';
+        joinConfirmBtn.disabled = true;
+        return;
+      }
+      if (g.away_team_code) {
+        joinGameMatchup.textContent = '';
+        joinError.textContent = 'An away team has already joined this game.';
+        joinConfirmBtn.disabled = true;
+        return;
+      }
+      joinGameMatchup.textContent = 'vs ' + (g.home_team_name || 'Home');
+    });
+  }
+
+  function confirmJoinGame() {
+    if (!pendingJoinCode) return;
+    joinConfirmBtn.textContent = 'JOINING...';
+    joinConfirmBtn.disabled = true;
+    joinError.textContent = '';
+
+    // Update the game row: set away_team fields
+    sb.from('games').update({
+      away_team_code: teamCode || ('guest_' + Date.now()),
+      away_team_name: teamName || 'Away',
+      away_team_logo: teamLogo || '',
+      updated_at: new Date().toISOString()
+    }).eq('game_code', pendingJoinCode)
+      .is('away_team_code', null)
+      .then(function(res) {
+        if (res.error) {
+          joinConfirmBtn.textContent = 'JOIN GAME';
+          joinConfirmBtn.disabled = false;
+          joinError.textContent = 'Failed to join. Try again.';
+          return;
+        }
+
+        // Fetch the game to get settings
+        sb.from('games').select('*').eq('game_code', pendingJoinCode).single().then(function(gRes) {
+          if (gRes.error || !gRes.data) {
+            joinConfirmBtn.textContent = 'JOIN GAME';
+            joinConfirmBtn.disabled = false;
+            joinError.textContent = 'Failed to load game.';
+            return;
+          }
+          var g = gRes.data;
+
+          // Set game state
+          gameCode = pendingJoinCode;
+          gameSide = 'away';
+          gameStatus = 'live';
+          homeScore = g.home_score || 0;
+          awayScore = g.away_score || 0;
+          // From away perspective, "awayTeamName" is the opponent = home team
+          awayTeamName = g.home_team_name || 'Home';
+          awayTeamLogo = g.home_team_logo || '';
+          numQuarters = g.num_quarters || 4;
+          quarterLength = g.quarter_length || 8;
+          scoringPlays = [];
+          playOrderCounter = 0;
+
+          localStorage.setItem(STORAGE_GAME_CODE, gameCode);
+          localStorage.setItem(STORAGE_GAME_SIDE, gameSide);
+
+          // Clear the URL parameter
+          var cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, '', cleanUrl);
+
+          pendingJoinCode = '';
+          showAttendance();
+        });
+      });
+  }
+
+  joinCancelBtn.addEventListener('click', function() {
+    pendingJoinCode = '';
+    var cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+    showSetup();
+  });
+  joinConfirmBtn.addEventListener('click', confirmJoinGame);
+
+  // ══════════════════════════════
+  // SPECTATOR VIEW
+  // ══════════════════════════════
+
   function checkSpectatorMode() {
     var params = new URLSearchParams(window.location.search);
     var gc = params.get('game');
@@ -3478,12 +3889,15 @@
     attendanceScreen.style.display = 'none';
     rotationScreen.style.display = 'none';
     gameSetupScreen.style.display = 'none';
+    joinGameScreen.style.display = 'none';
     summaryScreen.style.display = 'none';
     gameHistoryScreen.style.display = 'none';
     spectatorScreen.style.display = 'none';
     bottomBar.style.display = 'none';
     headerActions.innerHTML = '';
     document.querySelector('.header-inner').classList.remove('header-reversed');
+    // Clear coach poll timer when leaving rotation
+    if (coachPollTimer) { clearInterval(coachPollTimer); coachPollTimer = null; }
   }
 
   // ══════════════════════════════
@@ -3616,8 +4030,16 @@
       midGameReturn = false;
       if (currentIndex >= groups.length) currentIndex = 0;
       showRotation();
+    } else if (gameSide === 'away' && gameCode) {
+      // Away coach joining existing game — skip game creation
+      currentIndex = 0;
+      totalSubs = 0;
+      subHistory = [];
+      initPlayerStats();
+      syncGameToSupabase();
+      showRotation();
     } else {
-      // Fresh game start
+      // Fresh game start (home coach)
       currentIndex = 0;
       totalSubs = 0;
       subHistory = [];
@@ -3690,14 +4112,22 @@
     // Game score row (only visible when game is active)
     if (gameCode) {
       sbGameScore.style.display = '';
-      sbHomeScoreVal.textContent = homeScore;
-      sbAwayScoreVal.textContent = awayScore;
-      sbHomeAbbr.textContent = (teamName || 'HOME').substring(0, 4).toUpperCase();
-      sbAwayAbbr.textContent = (awayTeamName || 'AWAY').substring(0, 4).toUpperCase();
-      if (teamLogo) { sbHomeLogo.style.backgroundImage = 'url(' + teamLogo + ')'; sbHomeLogo.style.backgroundSize = 'cover'; sbHomeLogo.style.display = ''; } else { sbHomeLogo.style.display = 'none'; }
-      if (awayTeamLogo) { sbAwayLogo.style.backgroundImage = 'url(' + awayTeamLogo + ')'; sbAwayLogo.style.backgroundSize = 'cover'; sbAwayLogo.style.display = ''; } else { sbAwayLogo.style.display = 'none'; }
+      // "Our" score on the left, opponent on the right
+      var ourScore = gameSide === 'away' ? awayScore : homeScore;
+      var theirScore = gameSide === 'away' ? homeScore : awayScore;
+      var ourName = (teamName || (gameSide === 'away' ? 'AWAY' : 'HOME'));
+      var theirName = (awayTeamName || (gameSide === 'away' ? 'HOME' : 'AWAY'));
+      var ourLogo = teamLogo;
+      var theirLogo = awayTeamLogo;
+
+      sbHomeScoreVal.textContent = ourScore;
+      sbAwayScoreVal.textContent = theirScore;
+      sbHomeAbbr.textContent = ourName.substring(0, 4).toUpperCase();
+      sbAwayAbbr.textContent = theirName.substring(0, 4).toUpperCase();
+      if (ourLogo) { sbHomeLogo.style.backgroundImage = 'url(' + ourLogo + ')'; sbHomeLogo.style.backgroundSize = 'cover'; sbHomeLogo.style.display = ''; } else { sbHomeLogo.style.display = 'none'; }
+      if (theirLogo) { sbAwayLogo.style.backgroundImage = 'url(' + theirLogo + ')'; sbAwayLogo.style.backgroundSize = 'cover'; sbAwayLogo.style.display = ''; } else { sbAwayLogo.style.display = 'none'; }
       oppScoring.style.display = '';
-      oppScoringLabel.textContent = (awayTeamName || 'OPP').substring(0, 6).toUpperCase();
+      oppScoringLabel.textContent = theirName.substring(0, 6).toUpperCase();
     } else {
       sbGameScore.style.display = 'none';
       oppScoring.style.display = 'none';
@@ -3802,6 +4232,11 @@
     if (gameCode) {
       sbGameScore.style.display = '';
       oppScoring.style.display = '';
+      // Start polling opponent's score every 8 seconds
+      if (coachPollTimer) clearInterval(coachPollTimer);
+      coachPollTimer = setInterval(function() {
+        pollOpponentScore();
+      }, 8000);
     }
 
     render();
@@ -3897,6 +4332,7 @@
     localStorage.removeItem(STORAGE_TEAM_CODE);
     localStorage.removeItem(STORAGE_GAME_CODE);
     localStorage.removeItem(STORAGE_GAME_SIDE);
+    localStorage.removeItem('fullcourt_pending_join');
     closeResetModal();
     showSetup();
   }
@@ -4097,8 +4533,19 @@
   }
 
   function finishInit() {
-    // Check for spectator mode first (?game=XXXX in URL)
+    // Check for join mode first (?join=XXXX in URL)
+    if (checkJoinMode()) return;
+
+    // Check for spectator mode (?game=XXXX in URL)
     if (checkSpectatorMode()) return;
+
+    // Check for pending join from before team setup
+    var pendingJoin = localStorage.getItem('fullcourt_pending_join');
+    if (pendingJoin && roster.length >= 5) {
+      localStorage.removeItem('fullcourt_pending_join');
+      showJoinScreen(pendingJoin);
+      return;
+    }
 
     // Restore saved game state
     var savedGameCode = localStorage.getItem(STORAGE_GAME_CODE);
