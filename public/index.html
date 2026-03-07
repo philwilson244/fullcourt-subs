@@ -1872,6 +1872,16 @@
     font-weight: 900;
   }
 
+  .spec-team-stats-header {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
   /* ═══════════════════════════════
      GAME HISTORY SCREEN
      ═══════════════════════════════ */
@@ -2645,6 +2655,11 @@
     <div class="spec-feed-label">SCORING PLAYS</div>
     <div id="spec-feed-list"></div>
     <div class="history-empty" id="spec-feed-empty">No scoring plays yet.</div>
+  </div>
+  <div id="spec-summary" style="display:none">
+    <div class="spec-feed-label" style="margin-top:20px">PLAYER STATS</div>
+    <div id="spec-home-stats"></div>
+    <div id="spec-away-stats" style="margin-top:16px"></div>
   </div>
   <div class="spec-not-found" id="spec-not-found" style="display:none">
     <h2>GAME NOT FOUND</h2>
@@ -3756,11 +3771,16 @@
   summaryShareBtn.addEventListener('click', function() {
     if (!gameCode) return;
     var link = window.location.origin + window.location.pathname + '?game=' + gameCode;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(link).then(function() {
-        summaryShareBtn.textContent = 'COPIED!';
-        setTimeout(function() { summaryShareBtn.textContent = 'SHARE LINK'; }, 2000);
+    if (navigator.share) {
+      navigator.share({
+        title: 'Game Summary on Fullcourt',
+        text: (teamName || 'Team') + ' vs ' + (awayTeamName || 'Opponent') + ' \u2014 Final Score',
+        url: link
+      }).catch(function() {
+        copyToClipboard(link, summaryShareBtn, 'SHARE LINK');
       });
+    } else {
+      copyToClipboard(link, summaryShareBtn, 'SHARE LINK');
     }
   });
 
@@ -4158,6 +4178,25 @@
     });
   }
 
+  function renderTeamStatsTable(statsObj, teamName) {
+    if (!statsObj || typeof statsObj !== 'object') return '';
+    var names = Object.keys(statsObj);
+    if (names.length === 0) return '';
+    var rows = '';
+    for (var i = 0; i < names.length; i++) {
+      var s = statsObj[names[i]];
+      rows += '<tr><td>' + escHtml(names[i]) + '</td>' +
+        '<td class="pts-cell">' + (s.pts||0) + '</td>' +
+        '<td>' + (s.fgm||0) + '</td><td>' + (s.tpm||0) + '</td><td>' + (s.ftm||0) + '</td>' +
+        '<td>' + (s.reb||0) + '</td><td>' + (s.ast||0) + '</td>' +
+        '<td>' + (s.miss||0) + '</td><td>' + (s.tov||0) + '</td></tr>';
+    }
+    return '<div class="spec-team-stats-header">' + escHtml(teamName) + '</div>' +
+      '<div class="stat-table-wrap"><table class="stat-table">' +
+      '<thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>REB</th><th>AST</th><th>MISS</th><th>TOV</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
   function renderSpectatorView(game, plays) {
     var statusEl = document.getElementById('spec-status');
     var quarterEl = document.getElementById('spec-quarter');
@@ -4211,6 +4250,19 @@
           '<div class="spec-play-quarter">Q' + p.quarter + '</div></div>';
       }
       feedList.innerHTML = html;
+    }
+
+    // Post-game summary: show both teams' player stats when game is final
+    var specSummary = document.getElementById('spec-summary');
+    var specHomeStats = document.getElementById('spec-home-stats');
+    var specAwayStats = document.getElementById('spec-away-stats');
+
+    if (game.status === 'final') {
+      specSummary.style.display = '';
+      specHomeStats.innerHTML = renderTeamStatsTable(game.home_player_stats, game.home_team_name || 'Home');
+      specAwayStats.innerHTML = renderTeamStatsTable(game.away_player_stats, game.away_team_name || 'Away');
+    } else {
+      specSummary.style.display = 'none';
     }
   }
 
