@@ -170,7 +170,7 @@
     display: flex;
     justify-content: center;
     gap: 8px;
-    padding: 12px 0 4px;
+    padding: 20px 0 100px;
   }
   .rot-action-btn {
     background: none;
@@ -195,6 +195,8 @@
   .rot-action-btn.rot-danger:active { background: rgba(255,59,74,0.1); }
 
   /* ── Header Back Button ── */
+  .header-inner.header-reversed { flex-direction: row-reverse; }
+
   .back-btn {
     background: none;
     border: none;
@@ -1605,13 +1607,6 @@
     </div>
   </div>
 
-  <div class="rotation-actions" id="rotation-actions">
-    <button class="rot-action-btn" id="rot-history-btn">History</button>
-    <button class="rot-action-btn" id="rot-attendance-btn">Attendance</button>
-    <button class="rot-action-btn" id="rot-roster-btn">Roster</button>
-    <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
-  </div>
-
   <div class="sec">
     <div class="sec-head">
       <div class="sec-icon court-icon">01</div>
@@ -1633,6 +1628,13 @@
   <div class="sec">
     <div class="queue-label">FULL ROTATION</div>
     <div class="q-grid" id="rotation-list"></div>
+  </div>
+
+  <div class="rotation-actions" id="rotation-actions">
+    <button class="rot-action-btn" id="rot-history-btn">History</button>
+    <button class="rot-action-btn" id="rot-attendance-btn">Attendance</button>
+    <button class="rot-action-btn" id="rot-roster-btn">Roster</button>
+    <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
   </div>
 </div>
 
@@ -2210,6 +2212,7 @@
     rotationScreen.style.display = 'none';
     bottomBar.style.display = 'none';
     headerActions.innerHTML = '';
+    document.querySelector('.header-inner').classList.remove('header-reversed');
   }
 
   // ══════════════════════════════
@@ -2447,7 +2450,10 @@
     bottomBar.style.display = 'block';
     updateLogoUI();
 
-    // Back button in header
+    // Flip header: back button on left, brand on right
+    document.querySelector('.header-inner').classList.add('header-reversed');
+
+    // Back button in header (now on left side)
     var backBtn = document.createElement('button');
     backBtn.className = 'back-btn';
     backBtn.innerHTML = '&#9664;'; // ◀
