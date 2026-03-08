@@ -1045,6 +1045,29 @@
     color: var(--text-2);
   }
 
+  /* All-players card (scorekeeper) */
+  .p-card.all-p {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .p-card.all-p .p-num {
+    background: var(--surface-3);
+    color: var(--text-2);
+    border-right: 1px solid var(--border);
+  }
+  .p-card.all-p .p-name {
+    color: var(--text-1);
+  }
+  .p-card.all-p.all-p-oncourt {
+    border-color: rgba(255,107,43,0.2);
+  }
+  .p-card.all-p.all-p-oncourt .p-num {
+    background: var(--cyan-dim);
+    color: var(--cyan);
+    text-shadow: 0 0 8px rgba(255,107,43,0.4);
+  }
+
   /* ── On Deck Section Pulse ── */
   .sec-deck {
     animation: pulse-magenta 3s ease-in-out infinite;
@@ -2658,6 +2681,15 @@
       <div class="sec-line deck-line"></div>
     </div>
     <div class="p-grid" id="deck-players"></div>
+  </div>
+
+  <div class="sec" id="all-players-sec" style="display:none">
+    <div class="sec-head">
+      <div class="sec-icon" style="background:var(--surface-3);color:var(--text-2);">ALL</div>
+      <div class="sec-title">ALL PLAYERS</div>
+      <div class="sec-line" style="border-color:var(--border);"></div>
+    </div>
+    <div class="p-grid" id="all-players-grid"></div>
   </div>
 
   <div class="sec">
@@ -5001,6 +5033,63 @@
 
     renderPlayerCards(courtPlayers, courtGroup, 'court-p');
     renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+
+    // Scorekeeper: render all players section
+    var allPlayersSec = document.getElementById('all-players-sec');
+    if (isScorekeeper && gameCode) {
+      allPlayersSec.style.display = '';
+      var allGrid = document.getElementById('all-players-grid');
+      allGrid.innerHTML = '';
+      for (var ap = 0; ap < activeRoster.length; ap++) {
+        var pName = activeRoster[ap];
+        var card = document.createElement('div');
+        var onCourt = courtGroup && courtGroup.indexOf(pName) !== -1;
+        card.className = 'p-card all-p' + (onCourt ? ' all-p-oncourt' : '');
+
+        var num = document.createElement('div');
+        num.className = 'p-num';
+        var jersey = jerseyNumbers[pName];
+        if (jersey) { num.textContent = jersey; }
+        else { var n = ap + 1; num.textContent = n < 10 ? '0' + n : n; }
+
+        var nm = document.createElement('div');
+        nm.className = 'p-name';
+        nm.textContent = pName;
+
+        card.appendChild(num);
+        card.appendChild(nm);
+
+        // Points badge
+        var pts = (playerStats[pName] && playerStats[pName].pts) || 0;
+        if (pts > 0) {
+          var badge = document.createElement('div');
+          badge.className = 'p-pts';
+          badge.textContent = pts + ' PTS';
+          card.appendChild(badge);
+        }
+
+        // Foul badge
+        if (playerStats[pName]) {
+          var pf = playerStats[pName].pf || 0;
+          if (pf > 0) {
+            var foulBadge = document.createElement('div');
+            foulBadge.className = 'p-foul-badge';
+            if (pf >= 5) foulBadge.className += ' p-foul-out';
+            else if (pf >= 4) foulBadge.className += ' p-foul-warning';
+            foulBadge.textContent = pf + 'F';
+            card.appendChild(foulBadge);
+          }
+        }
+
+        (function(name) {
+          card.addEventListener('click', function() { openScoringModal(name); });
+        })(pName);
+
+        allGrid.appendChild(card);
+      }
+    } else {
+      allPlayersSec.style.display = 'none';
+    }
 
     // Game score row (only visible when game is active)
     if (gameCode) {
