@@ -595,6 +595,23 @@
     flex-shrink: 0;
   }
 
+  .slot-jersey {
+    width: 44px;
+    background: var(--surface-2);
+    border: none;
+    border-right: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-align: center;
+    padding: 14px 4px;
+    flex-shrink: 0;
+    text-shadow: 0 0 8px rgba(255,107,43,0.3);
+  }
+  .slot-jersey:focus { outline: none; background: var(--surface-1); }
+  .slot-jersey::placeholder { color: var(--text-3); font-weight: 500; text-shadow: none; }
+
   .slot-input {
     flex: 1;
     background: transparent;
@@ -1739,6 +1756,94 @@
   .stat-btn .score-btn-label { color: var(--text-3); }
   .stat-btn:active .score-btn-label { color: var(--bg); }
 
+  .stat-btn-foul {
+    border-color: rgba(255,59,74,0.3);
+    color: var(--red);
+  }
+  .stat-btn-foul:active {
+    background: var(--red);
+    color: var(--bg);
+    box-shadow: 0 0 24px rgba(255,59,74,0.4);
+  }
+  .stat-btn-foul .score-btn-label { color: rgba(255,59,74,0.6); }
+  .stat-btn-foul:active .score-btn-label { color: var(--bg); }
+
+  .stat-btn-ftmiss {
+    border-color: rgba(255,107,43,0.15);
+    color: var(--text-2);
+  }
+  .stat-btn-ftmiss:active {
+    background: var(--text-2);
+    color: var(--bg);
+  }
+
+  .p-foul-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    background: rgba(255,107,43,0.15);
+    color: var(--cyan);
+  }
+  .p-foul-warning {
+    background: rgba(255,200,0,0.2);
+    color: #FFD700;
+    animation: pulse-expired 1s ease-in-out 2;
+  }
+  .p-foul-out {
+    background: rgba(255,59,74,0.25);
+    color: var(--red);
+  }
+
+  .p-card { position: relative; }
+
+  .team-fouls-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 4px 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.45rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-3);
+  }
+  .team-fouls-row .bonus-tag {
+    color: #FFD700;
+    margin-left: 4px;
+  }
+
+  .undo-btn {
+    position: fixed;
+    bottom: 100px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: 1.1rem;
+    cursor: pointer;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .undo-btn:active {
+    background: var(--cyan);
+    color: var(--bg);
+    border-color: var(--cyan);
+  }
+  .undo-btn:empty { display: none; }
+
   .stat-table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -2461,6 +2566,13 @@
     <button class="opp-score-btn" data-pts="3">+3</button>
   </div>
 
+  <div class="team-fouls-row" id="team-fouls-row" style="display:none">
+    <span>TEAM FOULS: <span id="team-fouls-count">0</span></span>
+    <span id="team-fouls-bonus" style="display:none" class="bonus-tag">BONUS</span>
+  </div>
+
+  <button class="undo-btn" id="undo-btn" style="display:none" title="Undo">&#x21A9;</button>
+
   <div class="sec">
     <div class="sec-head">
       <div class="sec-icon court-icon">01</div>
@@ -2580,8 +2692,14 @@
     <div class="score-btns">
       <button class="stat-btn" data-stat="reb">REB<span class="score-btn-label">REBOUND</span></button>
       <button class="stat-btn" data-stat="ast">AST<span class="score-btn-label">ASSIST</span></button>
-      <button class="stat-btn" data-stat="miss">MISS<span class="score-btn-label">MISSED</span></button>
+      <button class="stat-btn" data-stat="stl">STL<span class="score-btn-label">STEAL</span></button>
+      <button class="stat-btn" data-stat="blk">BLK<span class="score-btn-label">BLOCK</span></button>
+    </div>
+    <div class="score-btns" style="margin-top:8px">
+      <button class="stat-btn" data-stat="miss">MISS<span class="score-btn-label">MISSED FG</span></button>
       <button class="stat-btn" data-stat="tov">TOV<span class="score-btn-label">TURNOVER</span></button>
+      <button class="stat-btn stat-btn-ftmiss" data-stat="ftmiss">FTX<span class="score-btn-label">FT MISS</span></button>
+      <button class="stat-btn stat-btn-foul" data-stat="pf">FOUL<span class="score-btn-label">PERSONAL</span></button>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="scoring-cancel">CLOSE</button>
@@ -2677,6 +2795,7 @@
   var STORAGE_TEAM_CODE = 'fullcourt_team_code';
   var STORAGE_GAME_CODE = 'fullcourt_game_code';
   var STORAGE_GAME_SIDE = 'fullcourt_game_side';
+  var STORAGE_JERSEY = 'fullcourt_jerseys';
 
   // Supabase
   var SUPABASE_URL = 'https://tniyivhikkoxcmtzqoqw.supabase.co';
@@ -2869,6 +2988,13 @@
   var isScorekeeper = false;
   var scorekeeperPollTimer = null;
 
+  // Fouls & Undo
+  var teamFouls = {};  // { 1: 0, 2: 0, ... } per quarter
+  var undoStack = [];  // [{ type:'stat'|'score', playerName, statType, points, side, playOrder, extra }]
+
+  // Jersey numbers
+  var jerseyNumbers = {};  // { "PlayerName": "23" }
+
   // ══════════════════════════════
   // SUPABASE SYNC
   // ══════════════════════════════
@@ -2943,6 +3069,7 @@
       localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
       localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
       localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength }));
+      localStorage.setItem(STORAGE_JERSEY, JSON.stringify(jerseyNumbers));
       if (teamLogo) localStorage.setItem(STORAGE_LOGO, teamLogo);
       else localStorage.removeItem(STORAGE_LOGO);
       if (callback) callback(true);
@@ -3006,6 +3133,7 @@
       localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
       localStorage.setItem(STORAGE_TEAM, JSON.stringify({ name: teamName, subtitle: teamSubtitle }));
       localStorage.setItem(STORAGE_GAME_FORMAT, JSON.stringify({ quarters: numQuarters, subsPerQuarter: subsPerQuarter, quarterLength: quarterLength }));
+      localStorage.setItem(STORAGE_JERSEY, JSON.stringify(jerseyNumbers));
       if (teamLogo) localStorage.setItem(STORAGE_LOGO, teamLogo);
       else localStorage.removeItem(STORAGE_LOGO);
 
@@ -3049,18 +3177,22 @@
     if (count < 10 && !names.length) count = 10;
     slotCount = count;
     for (var i = 0; i < count; i++) {
-      addSlotDOM(i + 1, names ? (names[i] || '') : '');
+      var playerName = names ? (names[i] || '') : '';
+      addSlotDOM(i + 1, playerName, playerName ? (jerseyNumbers[playerName] || '') : '');
     }
     updateAddBtn();
   }
 
-  function addSlotDOM(num, val) {
+  function addSlotDOM(num, val, jerseyVal) {
     var slot = document.createElement('div');
     slot.className = 'player-slot';
 
-    var numEl = document.createElement('div');
-    numEl.className = 'slot-number';
-    numEl.textContent = num < 10 ? '0' + num : num;
+    var jerseyInput = document.createElement('input');
+    jerseyInput.type = 'tel';
+    jerseyInput.className = 'slot-jersey';
+    jerseyInput.placeholder = '#';
+    jerseyInput.maxLength = 2;
+    jerseyInput.value = jerseyVal || '';
 
     var input = document.createElement('input');
     input.type = 'text';
@@ -3079,7 +3211,7 @@
       updateAddBtn();
     });
 
-    slot.appendChild(numEl);
+    slot.appendChild(jerseyInput);
     slot.appendChild(input);
     slot.appendChild(removeBtn);
     playerSlotsContainer.appendChild(slot);
@@ -3090,7 +3222,6 @@
     slotCount = slots.length;
     for (var i = 0; i < slots.length; i++) {
       var n = i + 1;
-      slots[i].querySelector('.slot-number').textContent = n < 10 ? '0' + n : n;
       slots[i].querySelector('.slot-input').placeholder = 'Player ' + n;
       var rm = slots[i].querySelector('.slot-remove');
       if (n <= MIN_SLOTS) rm.classList.add('hidden');
@@ -3107,11 +3238,18 @@
   }
 
   function getSlotNames() {
-    var inputs = playerSlotsContainer.querySelectorAll('.slot-input');
+    var slots = playerSlotsContainer.children;
     var names = [];
-    for (var i = 0; i < inputs.length; i++) {
-      var v = inputs[i].value.trim();
-      if (v) names.push(v);
+    jerseyNumbers = {};
+    for (var i = 0; i < slots.length; i++) {
+      var nameInput = slots[i].querySelector('.slot-input');
+      var jerseyInput = slots[i].querySelector('.slot-jersey');
+      var v = nameInput ? nameInput.value.trim() : '';
+      if (v) {
+        names.push(v);
+        var j = jerseyInput ? jerseyInput.value.trim() : '';
+        if (j) jerseyNumbers[v] = j;
+      }
     }
     return names;
   }
@@ -3272,7 +3410,7 @@
   function initPlayerStats() {
     playerStats = {};
     for (var i = 0; i < activeRoster.length; i++) {
-      playerStats[activeRoster[i]] = { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0 };
+      playerStats[activeRoster[i]] = { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0, stl: 0, blk: 0, pf: 0, fga: 0, tpa: 0, fta: 0, min: 0 };
     }
   }
 
@@ -3365,7 +3503,43 @@
 
   function recordStat(playerName, statType) {
     if (!playerStats[playerName]) return;
-    playerStats[playerName][statType]++;
+    // Ensure new stat fields exist (for games created before this update)
+    var p = playerStats[playerName];
+    if (p.stl === undefined) p.stl = 0;
+    if (p.blk === undefined) p.blk = 0;
+    if (p.pf === undefined) p.pf = 0;
+    if (p.fga === undefined) p.fga = 0;
+    if (p.tpa === undefined) p.tpa = 0;
+    if (p.fta === undefined) p.fta = 0;
+    if (p.min === undefined) p.min = 0;
+
+    // Handle special stat types
+    if (statType === 'ftmiss') {
+      playerStats[playerName].fta++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: 'ftmiss' });
+    } else if (statType === 'pf') {
+      playerStats[playerName].pf++;
+      // Track team fouls for current quarter
+      var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
+      if (!teamFouls[currentQ]) teamFouls[currentQ] = 0;
+      teamFouls[currentQ]++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: 'pf', quarter: currentQ });
+      // Fouled out warning
+      if (playerStats[playerName].pf >= 5) {
+        setTimeout(function() { alert(playerName + ' has fouled out! (5 fouls)'); }, 100);
+      }
+    } else if (statType === 'miss') {
+      playerStats[playerName].miss++;
+      playerStats[playerName].fga++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: 'miss' });
+    } else {
+      playerStats[playerName][statType]++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: statType });
+    }
+
+    // Cap undo stack
+    if (undoStack.length > 30) undoStack.shift();
+
     if (gameCode) syncGameToSupabase();
     render();
   }
@@ -3402,6 +3576,7 @@
     else startClock();
   }
 
+  var clockTickCounter = 0;
   function tickClock() {
     if (clockSeconds <= 0) {
       pauseClock();
@@ -3410,6 +3585,22 @@
       return;
     }
     clockSeconds--;
+
+    // Accumulate minutes for on-court players
+    if (groups[currentIndex]) {
+      var onCourt = groups[currentIndex];
+      for (var mi = 0; mi < onCourt.length; mi++) {
+        if (playerStats[onCourt[mi]]) playerStats[onCourt[mi]].min++;
+      }
+    }
+
+    // Sync every 30 seconds to avoid hammering Supabase
+    clockTickCounter++;
+    if (clockTickCounter >= 30) {
+      clockTickCounter = 0;
+      if (gameCode) syncGameToSupabase();
+    }
+
     renderClock();
     if (clockSeconds <= 0) {
       pauseClock();
@@ -3468,10 +3659,14 @@
     // Update player stats if this is OUR player (not opponent)
     var ourSide = gameSide || 'home';
     if (side === ourSide && playerStats[playerName]) {
-      playerStats[playerName].pts += points;
-      if (points === 1) playerStats[playerName].ftm++;
-      else if (points === 2) playerStats[playerName].fgm++;
-      else if (points === 3) playerStats[playerName].tpm++;
+      var ps = playerStats[playerName];
+      if (ps.fga === undefined) ps.fga = 0;
+      if (ps.tpa === undefined) ps.tpa = 0;
+      if (ps.fta === undefined) ps.fta = 0;
+      ps.pts += points;
+      if (points === 1) { ps.ftm++; ps.fta++; }
+      else if (points === 2) { ps.fgm++; ps.fga++; }
+      else if (points === 3) { ps.tpm++; ps.tpa++; ps.fga++; }
     }
 
     playOrderCounter++;
@@ -3485,6 +3680,10 @@
       play_order: playOrderCounter
     };
     scoringPlays.push(play);
+
+    // Push to undo stack
+    undoStack.push({ type: 'score', playerName: playerName, points: points, side: side, playOrder: playOrderCounter });
+    if (undoStack.length > 30) undoStack.shift();
 
     // Push to Supabase
     if (gameCode) {
@@ -3508,12 +3707,13 @@
     var s = playerStats[scoringPlayerName];
     if (!s) { scoringPlayerStatsLine.textContent = ''; return; }
     scoringPlayerStatsLine.textContent =
-      s.pts + ' PTS  ' + (s.reb || 0) + ' REB  ' + (s.ast || 0) + ' AST  ' + (s.miss || 0) + ' MISS  ' + (s.tov || 0) + ' TOV';
+      s.pts + ' PTS  ' + (s.reb || 0) + ' REB  ' + (s.ast || 0) + ' AST  ' + (s.stl || 0) + ' STL  ' + (s.blk || 0) + ' BLK  ' + (s.pf || 0) + ' PF';
   }
 
   function openScoringModal(name) {
     scoringPlayerName = name;
-    scoringPlayerNameEl.textContent = name.toUpperCase();
+    var jersey = jerseyNumbers[name];
+    scoringPlayerNameEl.textContent = (jersey ? '#' + jersey + ' ' : '') + name.toUpperCase();
     updateScoringModalStats();
     scoringModal.classList.add('open');
   }
@@ -3678,6 +3878,56 @@
     toggleClock();
   });
 
+  // ── Undo Button Handler ──
+  document.getElementById('undo-btn').addEventListener('click', function() {
+    if (undoStack.length === 0) return;
+    var last = undoStack.pop();
+
+    if (last.type === 'stat') {
+      if (last.statType === 'ftmiss') {
+        if (playerStats[last.playerName]) playerStats[last.playerName].fta = Math.max(0, (playerStats[last.playerName].fta || 0) - 1);
+      } else if (last.statType === 'pf') {
+        if (playerStats[last.playerName]) playerStats[last.playerName].pf = Math.max(0, (playerStats[last.playerName].pf || 0) - 1);
+        if (last.quarter && teamFouls[last.quarter]) teamFouls[last.quarter] = Math.max(0, teamFouls[last.quarter] - 1);
+      } else if (last.statType === 'miss') {
+        if (playerStats[last.playerName]) {
+          playerStats[last.playerName].miss = Math.max(0, (playerStats[last.playerName].miss || 0) - 1);
+          playerStats[last.playerName].fga = Math.max(0, (playerStats[last.playerName].fga || 0) - 1);
+        }
+      } else {
+        if (playerStats[last.playerName] && playerStats[last.playerName][last.statType] !== undefined) {
+          playerStats[last.playerName][last.statType] = Math.max(0, playerStats[last.playerName][last.statType] - 1);
+        }
+      }
+    } else if (last.type === 'score') {
+      // Reverse the score
+      if (last.side === 'home') homeScore = Math.max(0, homeScore - last.points);
+      else awayScore = Math.max(0, awayScore - last.points);
+
+      // Reverse player stat counters (only for our players)
+      var ourSide = gameSide || 'home';
+      if (last.side === ourSide && playerStats[last.playerName]) {
+        playerStats[last.playerName].pts = Math.max(0, playerStats[last.playerName].pts - last.points);
+        if (last.points === 1) { playerStats[last.playerName].ftm = Math.max(0, playerStats[last.playerName].ftm - 1); playerStats[last.playerName].fta = Math.max(0, (playerStats[last.playerName].fta||0) - 1); }
+        else if (last.points === 2) { playerStats[last.playerName].fgm = Math.max(0, playerStats[last.playerName].fgm - 1); playerStats[last.playerName].fga = Math.max(0, (playerStats[last.playerName].fga||0) - 1); }
+        else if (last.points === 3) { playerStats[last.playerName].tpm = Math.max(0, playerStats[last.playerName].tpm - 1); playerStats[last.playerName].tpa = Math.max(0, (playerStats[last.playerName].tpa||0) - 1); playerStats[last.playerName].fga = Math.max(0, (playerStats[last.playerName].fga||0) - 1); }
+      }
+
+      // Remove last scoring play
+      if (scoringPlays.length > 0) {
+        scoringPlays.pop();
+      }
+
+      // Delete from Supabase
+      if (gameCode && last.playOrder) {
+        sb.from('scoring_plays').delete().eq('game_code', gameCode).eq('play_order', last.playOrder).then(function() {});
+      }
+    }
+
+    if (gameCode) syncGameToSupabase();
+    render();
+  });
+
   // ── Opponent Scoring Events ──
 
   var oppScoreBtns = document.querySelectorAll('.opp-score-btn');
@@ -3718,16 +3968,25 @@
     var rows = '';
     for (var i = 0; i < activeRoster.length; i++) {
       var name = activeRoster[i];
-      var s = playerStats[name] || { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0 };
-      if (s.pts > 0 || s.reb > 0 || s.ast > 0 || s.miss > 0 || s.tov > 0) hasStats = true;
-      rows += '<tr><td>' + escHtml(name) + '</td><td class="pts-cell">' + s.pts + '</td>' +
-        '<td>' + s.fgm + '</td><td>' + s.tpm + '</td><td>' + s.ftm + '</td>' +
+      var s = playerStats[name] || { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0, stl: 0, blk: 0, pf: 0, fga: 0, tpa: 0, fta: 0, min: 0 };
+      if (s.pts > 0 || s.reb > 0 || s.ast > 0 || s.miss > 0 || s.tov > 0 || s.stl > 0 || s.blk > 0 || s.pf > 0) hasStats = true;
+      var fgPct = (s.fga || 0) > 0 ? Math.round(((s.fgm || 0) / s.fga) * 100) : 0;
+      var tpPct = (s.tpa || 0) > 0 ? Math.round(((s.tpm || 0) / s.tpa) * 100) : 0;
+      var ftPct = (s.fta || 0) > 0 ? Math.round(((s.ftm || 0) / s.fta) * 100) : 0;
+      var minSec = s.min || 0;
+      var minStr = Math.floor(minSec / 60) + ':' + (minSec % 60 < 10 ? '0' : '') + (minSec % 60);
+      var jersey = jerseyNumbers[name] || '';
+      rows += '<tr><td>' + (jersey ? '#' + escHtml(jersey) + ' ' : '') + escHtml(name) + '</td><td class="pts-cell">' + s.pts + '</td>' +
+        '<td>' + (s.fgm||0) + '/' + (s.fga||0) + '</td><td>' + (s.tpm||0) + '/' + (s.tpa||0) + '</td><td>' + (s.ftm||0) + '/' + (s.fta||0) + '</td>' +
+        '<td>' + fgPct + '</td><td>' + tpPct + '</td><td>' + ftPct + '</td>' +
         '<td>' + (s.reb || 0) + '</td><td>' + (s.ast || 0) + '</td>' +
-        '<td>' + (s.miss || 0) + '</td><td>' + (s.tov || 0) + '</td></tr>';
+        '<td>' + (s.stl || 0) + '</td><td>' + (s.blk || 0) + '</td>' +
+        '<td>' + (s.tov || 0) + '</td><td>' + (s.pf || 0) + '</td>' +
+        '<td>' + minStr + '</td></tr>';
     }
     if (hasStats || activeRoster.length > 0) {
       summaryPlayerStats.innerHTML =
-        '<div class="stat-table-wrap"><table class="stat-table"><thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>REB</th><th>AST</th><th>MISS</th><th>TOV</th></tr></thead><tbody>' +
+        '<div class="stat-table-wrap"><table class="stat-table"><thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>FG%</th><th>3P%</th><th>FT%</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TOV</th><th>PF</th><th>MIN</th></tr></thead><tbody>' +
         rows + '</tbody></table></div>';
     } else {
       summaryPlayerStats.innerHTML = '<div class="history-empty">No player stats.</div>';
@@ -3763,6 +4022,8 @@
     clockRunning = false;
     if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
     isScorekeeper = false;
+    teamFouls = {};
+    undoStack = [];
     localStorage.removeItem(STORAGE_GAME_CODE);
     localStorage.removeItem(STORAGE_GAME_SIDE);
     showSetup();
@@ -4185,15 +4446,23 @@
     var rows = '';
     for (var i = 0; i < names.length; i++) {
       var s = statsObj[names[i]];
+      var fgPct = (s.fga || 0) > 0 ? Math.round(((s.fgm || 0) / s.fga) * 100) : 0;
+      var tpPct = (s.tpa || 0) > 0 ? Math.round(((s.tpm || 0) / s.tpa) * 100) : 0;
+      var ftPct = (s.fta || 0) > 0 ? Math.round(((s.ftm || 0) / s.fta) * 100) : 0;
+      var minSec = s.min || 0;
+      var minStr = Math.floor(minSec / 60) + ':' + (minSec % 60 < 10 ? '0' : '') + (minSec % 60);
       rows += '<tr><td>' + escHtml(names[i]) + '</td>' +
         '<td class="pts-cell">' + (s.pts||0) + '</td>' +
-        '<td>' + (s.fgm||0) + '</td><td>' + (s.tpm||0) + '</td><td>' + (s.ftm||0) + '</td>' +
+        '<td>' + (s.fgm||0) + '/' + (s.fga||0) + '</td><td>' + (s.tpm||0) + '/' + (s.tpa||0) + '</td><td>' + (s.ftm||0) + '/' + (s.fta||0) + '</td>' +
+        '<td>' + fgPct + '</td><td>' + tpPct + '</td><td>' + ftPct + '</td>' +
         '<td>' + (s.reb||0) + '</td><td>' + (s.ast||0) + '</td>' +
-        '<td>' + (s.miss||0) + '</td><td>' + (s.tov||0) + '</td></tr>';
+        '<td>' + (s.stl||0) + '</td><td>' + (s.blk||0) + '</td>' +
+        '<td>' + (s.tov||0) + '</td><td>' + (s.pf||0) + '</td>' +
+        '<td>' + minStr + '</td></tr>';
     }
     return '<div class="spec-team-stats-header">' + escHtml(teamName) + '</div>' +
       '<div class="stat-table-wrap"><table class="stat-table">' +
-      '<thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>REB</th><th>AST</th><th>MISS</th><th>TOV</th></tr></thead>' +
+      '<thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>FG%</th><th>3P%</th><th>FT%</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TOV</th><th>PF</th><th>MIN</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -4450,8 +4719,13 @@
 
       var num = document.createElement('div');
       num.className = 'p-num';
-      var n = i + 1;
-      num.textContent = n < 10 ? '0' + n : n;
+      var jersey = jerseyNumbers[names[i]];
+      if (jersey) {
+        num.textContent = jersey;
+      } else {
+        var n = i + 1;
+        num.textContent = n < 10 ? '0' + n : n;
+      }
 
       var nm = document.createElement('div');
       nm.className = 'p-name';
@@ -4459,6 +4733,19 @@
 
       card.appendChild(num);
       card.appendChild(nm);
+
+      // Foul badge
+      if (gameCode && playerStats[names[i]]) {
+        var pf = playerStats[names[i]].pf || 0;
+        if (pf > 0) {
+          var foulBadge = document.createElement('div');
+          foulBadge.className = 'p-foul-badge';
+          if (pf >= 5) foulBadge.className += ' p-foul-out';
+          else if (pf >= 4) foulBadge.className += ' p-foul-warning';
+          foulBadge.textContent = pf + 'F';
+          card.appendChild(foulBadge);
+        }
+      }
 
       // If game is active and this is a court player, add points badge and tap-to-score
       if (gameCode && cls === 'court-p') {
@@ -4594,6 +4881,27 @@
       row.appendChild(tagEl);
       row.appendChild(namesEl);
       rotationList.appendChild(row);
+    }
+
+    // Team fouls display
+    var teamFoulsRow = document.getElementById('team-fouls-row');
+    var teamFoulsCount = document.getElementById('team-fouls-count');
+    var teamFoulsBonus = document.getElementById('team-fouls-bonus');
+    if (gameCode && !isSpectatorView) {
+      var qFouls = teamFouls[currentQ] || 0;
+      teamFoulsRow.style.display = '';
+      teamFoulsCount.textContent = qFouls;
+      teamFoulsBonus.style.display = qFouls >= 7 ? '' : 'none';
+    } else {
+      teamFoulsRow.style.display = 'none';
+    }
+
+    // Undo button
+    var undoBtn = document.getElementById('undo-btn');
+    if (gameCode && undoStack.length > 0 && !isSpectatorView && !isScorekeeper) {
+      undoBtn.style.display = '';
+    } else {
+      undoBtn.style.display = 'none';
     }
   }
 
@@ -4744,6 +5052,9 @@
     clockSeconds = 0;
     clockRunning = false;
     if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+    teamFouls = {};
+    undoStack = [];
+    jerseyNumbers = {};
     localStorage.removeItem(STORAGE_ROSTER);
     localStorage.removeItem(STORAGE_TEAM);
     localStorage.removeItem(STORAGE_LOGO);
@@ -4751,6 +5062,7 @@
     localStorage.removeItem(STORAGE_TEAM_CODE);
     localStorage.removeItem(STORAGE_GAME_CODE);
     localStorage.removeItem(STORAGE_GAME_SIDE);
+    localStorage.removeItem(STORAGE_JERSEY);
     localStorage.removeItem('fullcourt_pending_join');
     closeResetModal();
     showSetup();
@@ -4944,6 +5256,11 @@
         var parsed = JSON.parse(savedRoster);
         if (Array.isArray(parsed) && parsed.length >= 5) {
           roster = parsed;
+          // Load jersey numbers
+          var savedJerseys = localStorage.getItem(STORAGE_JERSEY);
+          if (savedJerseys) {
+            try { jerseyNumbers = JSON.parse(savedJerseys) || {}; } catch (e2) { jerseyNumbers = {}; }
+          }
           return true; // has roster
         }
       } catch (e) {}
