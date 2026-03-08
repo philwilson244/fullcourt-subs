@@ -4911,8 +4911,8 @@
         }
       }
 
-      // If game is active and this is a court player, add points badge and tap-to-score
-      if (gameCode && cls === 'court-p') {
+      // If game is active, add points badge and tap-to-score for court and deck players
+      if (gameCode) {
         var pts = (playerStats[names[i]] && playerStats[names[i]].pts) || 0;
         if (pts > 0) {
           var badge = document.createElement('div');
