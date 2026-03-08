@@ -1390,10 +1390,46 @@
     border-radius: 6px;
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: transform 0.15s, opacity 0.15s, border-color 0.15s;
     -webkit-user-select: none;
     user-select: none;
+    position: relative;
   }
+
+  .att-row.att-dragging {
+    opacity: 0.9;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 12px rgba(255,107,43,0.3);
+    border-color: var(--cyan);
+    transform: scale(1.03);
+  }
+
+  .att-row.att-drag-over-above {
+    border-top: 2px solid var(--cyan);
+  }
+
+  .att-row.att-drag-over-below {
+    border-bottom: 2px solid var(--cyan);
+  }
+
+  .att-drag-handle {
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    flex-shrink: 0;
+    color: var(--text-3);
+    font-size: 0.85rem;
+    cursor: grab;
+    touch-action: none;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+  }
+
+  .att-drag-handle:active { cursor: grabbing; }
+  .att-row:hover .att-drag-handle,
+  .att-row:active .att-drag-handle { opacity: 1; }
 
   .att-row.present {
     border-color: rgba(255,107,43,0.2);
@@ -2438,7 +2474,7 @@
   <div class="team-logo-banner" id="attendance-logo"><img id="attendance-logo-img" src="" alt=""></div>
   <div class="att-hero">
     <h1>WHO'S <span class="glow">HERE?</span></h1>
-    <p>Tap a player to mark them out. Only present players will be in today's rotation.</p>
+    <p>Tap a player to mark them out. Drag the handle to reorder. Only present players will be in today's rotation.</p>
   </div>
   <div class="att-count" id="att-count"></div>
   <div class="att-list" id="att-list"></div>
@@ -4634,6 +4670,11 @@
       var row = document.createElement('div');
       row.className = 'att-row ' + (isPresent ? 'present' : 'absent');
       row.dataset.name = name;
+      row.dataset.index = i;
+
+      var handle = document.createElement('div');
+      handle.className = 'att-drag-handle';
+      handle.textContent = '\u2630';
 
       var num = document.createElement('div');
       num.className = 'att-num';
@@ -4648,12 +4689,14 @@
       toggle.className = 'att-toggle';
       toggle.textContent = isPresent ? '\u2713' : '\u2715';
 
+      row.appendChild(handle);
       row.appendChild(num);
       row.appendChild(nm);
       row.appendChild(toggle);
 
       (function(playerName) {
-        row.addEventListener('click', function() {
+        row.addEventListener('click', function(e) {
+          if (e.target.closest('.att-drag-handle')) return;
           attendance[playerName] = !attendance[playerName];
           renderAttendance();
         });
@@ -4662,12 +4705,133 @@
       attList.appendChild(row);
     }
 
+    initAttDragDrop();
+
     if (presentCount < 5) {
       attCount.className = 'att-count att-error';
       attCount.innerHTML = presentCount + ' / ' + roster.length + ' PRESENT \u2014 NEED AT LEAST 5';
     } else {
       attCount.className = 'att-count';
       attCount.innerHTML = '<span>' + presentCount + '</span> / ' + roster.length + ' PRESENT';
+    }
+  }
+
+  // ── Attendance drag-and-drop reordering ──
+  function initAttDragDrop() {
+    var dragState = null;
+
+    var rows = attList.querySelectorAll('.att-row');
+    for (var i = 0; i < rows.length; i++) {
+      var handle = rows[i].querySelector('.att-drag-handle');
+      if (handle) {
+        handle.addEventListener('touchstart', onDragStart, { passive: false });
+        handle.addEventListener('mousedown', onDragStart);
+      }
+    }
+
+    function onDragStart(e) {
+      e.preventDefault();
+      var row = e.target.closest('.att-row');
+      if (!row) return;
+
+      var rect = row.getBoundingClientRect();
+      var touch = e.touches ? e.touches[0] : e;
+
+      dragState = {
+        row: row,
+        fromIndex: parseInt(row.dataset.index),
+        startY: touch.clientY,
+        offsetY: touch.clientY - rect.top,
+        clone: null,
+        placeholder: null,
+        currentOverIndex: parseInt(row.dataset.index)
+      };
+
+      // Create a floating clone
+      var clone = row.cloneNode(true);
+      clone.className = row.className + ' att-dragging';
+      clone.style.position = 'fixed';
+      clone.style.left = rect.left + 'px';
+      clone.style.top = rect.top + 'px';
+      clone.style.width = rect.width + 'px';
+      clone.style.pointerEvents = 'none';
+      document.body.appendChild(clone);
+      dragState.clone = clone;
+
+      // Dim the original row as placeholder
+      row.style.opacity = '0.2';
+      dragState.placeholder = row;
+
+      document.addEventListener('touchmove', onDragMove, { passive: false });
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('touchend', onDragEnd);
+      document.addEventListener('mouseup', onDragEnd);
+    }
+
+    function onDragMove(e) {
+      if (!dragState) return;
+      e.preventDefault();
+
+      var touch = e.touches ? e.touches[0] : e;
+      var y = touch.clientY;
+
+      // Move the clone
+      dragState.clone.style.top = (y - dragState.offsetY) + 'px';
+
+      // Clear previous indicators
+      var allRows = attList.querySelectorAll('.att-row');
+      for (var i = 0; i < allRows.length; i++) {
+        allRows[i].classList.remove('att-drag-over-above', 'att-drag-over-below');
+      }
+
+      // Find which row we're over
+      for (var i = 0; i < allRows.length; i++) {
+        var r = allRows[i].getBoundingClientRect();
+        if (y >= r.top && y <= r.bottom) {
+          var mid = r.top + r.height / 2;
+          if (y < mid) {
+            allRows[i].classList.add('att-drag-over-above');
+            dragState.currentOverIndex = parseInt(allRows[i].dataset.index);
+            if (dragState.currentOverIndex > dragState.fromIndex) {
+              dragState.currentOverIndex--;
+            }
+          } else {
+            allRows[i].classList.add('att-drag-over-below');
+            dragState.currentOverIndex = parseInt(allRows[i].dataset.index);
+            if (dragState.currentOverIndex < dragState.fromIndex) {
+              dragState.currentOverIndex++;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    function onDragEnd(e) {
+      if (!dragState) return;
+
+      document.removeEventListener('touchmove', onDragMove);
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('touchend', onDragEnd);
+      document.removeEventListener('mouseup', onDragEnd);
+
+      // Remove clone
+      if (dragState.clone && dragState.clone.parentNode) {
+        dragState.clone.parentNode.removeChild(dragState.clone);
+      }
+
+      // Reorder roster if position changed
+      var from = dragState.fromIndex;
+      var to = dragState.currentOverIndex;
+
+      if (from !== to && to >= 0 && to < roster.length) {
+        var player = roster.splice(from, 1)[0];
+        roster.splice(to, 0, player);
+        saveRoster();
+      }
+
+      dragState = null;
+      renderAttendance();
     }
   }
 
