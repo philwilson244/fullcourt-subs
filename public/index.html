@@ -1792,6 +1792,39 @@
   .stat-btn .score-btn-label { color: var(--text-3); }
   .stat-btn:active .score-btn-label { color: var(--bg); }
 
+  .stat-toast {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--cyan);
+    color: var(--bg);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 10;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(255,107,43,0.4);
+  }
+  .stat-toast.stat-toast-stat {
+    background: var(--magenta);
+    box-shadow: 0 4px 20px rgba(255,45,120,0.4);
+  }
+  .stat-toast.stat-toast-foul {
+    background: var(--red);
+    box-shadow: 0 4px 20px rgba(255,59,74,0.4);
+  }
+  .stat-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
   .stat-btn-foul {
     border-color: rgba(255,59,74,0.3);
     color: var(--red);
@@ -2714,7 +2747,8 @@
 
 <!-- ── Scoring Modal ── -->
 <div class="modal-overlay" id="scoring-modal">
-  <div class="modal">
+  <div class="modal" style="position:relative">
+    <div class="stat-toast" id="stat-toast"></div>
     <div class="modal-handle"></div>
     <h2 id="scoring-player-name">PLAYER</h2>
     <div class="scoring-player-stats" id="scoring-player-stats-line"></div>
@@ -3685,6 +3719,21 @@
     }
   }
 
+  var statToast = document.getElementById('stat-toast');
+  var statToastTimer = null;
+
+  function showStatToast(message, type) {
+    if (statToastTimer) clearTimeout(statToastTimer);
+    statToast.textContent = message;
+    statToast.className = 'stat-toast' + (type ? ' stat-toast-' + type : '');
+    // Force reflow so transition replays if already visible
+    void statToast.offsetWidth;
+    statToast.classList.add('visible');
+    statToastTimer = setTimeout(function() {
+      statToast.classList.remove('visible');
+    }, 1200);
+  }
+
   function recordScore(playerName, points, side) {
     if (side === 'home') {
       homeScore += points;
@@ -3885,10 +3934,14 @@
   scoringCancelBtn.addEventListener('click', closeScoringModal);
   scoringModal.addEventListener('click', function(e) { if (e.target === scoringModal) closeScoringModal(); });
 
+  var scoreLabels = { 1: '+1 FREE THROW', 2: '+2 FIELD GOAL', 3: '+3 THREE POINTER' };
+  var statLabels = { reb: '+1 REBOUND', ast: '+1 ASSIST', stl: '+1 STEAL', blk: '+1 BLOCK', miss: 'MISSED FG', tov: 'TURNOVER', ftmiss: 'FT MISS', pf: 'FOUL' };
+
   var scoreBtns = document.querySelectorAll('.score-btn');
   for (var si = 0; si < scoreBtns.length; si++) {
     scoreBtns[si].addEventListener('click', function() {
       var pts = parseInt(this.getAttribute('data-pts'));
+      showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS'));
       recordScore(scoringPlayerName, pts, gameSide || 'home');
       closeScoringModal();
     });
@@ -3898,8 +3951,9 @@
   for (var sti = 0; sti < statBtns.length; sti++) {
     statBtns[sti].addEventListener('click', function() {
       var stat = this.getAttribute('data-stat');
+      var type = (stat === 'pf') ? 'foul' : 'stat';
+      showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type);
       recordStat(scoringPlayerName, stat);
-      // Update the stat line in the modal without closing
       updateScoringModalStats();
     });
   }
