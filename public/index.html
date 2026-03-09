@@ -1796,18 +1796,18 @@
     position: absolute;
     top: 12px;
     left: 50%;
-    transform: translateX(-50%) translateY(-8px);
+    transform: translateX(-50%) translateY(-8px) scale(0.8);
     background: var(--cyan);
     color: var(--bg);
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     font-weight: 900;
     letter-spacing: 1.5px;
-    padding: 8px 20px;
+    padding: 10px 24px;
     border-radius: 6px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.15s, transform 0.15s;
+    transition: opacity 0.15s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 10;
     white-space: nowrap;
     box-shadow: 0 4px 20px rgba(255,107,43,0.4);
@@ -1822,7 +1822,34 @@
   }
   .stat-toast.visible {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  /* Flash effect on buttons after tap */
+  .score-btn.btn-flash, .stat-btn.btn-flash {
+    animation: btnFlash 0.35s ease-out;
+  }
+  @keyframes btnFlash {
+    0%   { filter: brightness(2.5); transform: scale(1.08); }
+    100% { filter: brightness(1); transform: scale(1); }
+  }
+
+  /* Full-screen flash overlay */
+  .stat-flash-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .stat-flash-overlay.flash-active {
+    opacity: 1;
+    animation: flashFade 0.3s ease-out forwards;
+  }
+  @keyframes flashFade {
+    0%   { opacity: 0.25; }
+    100% { opacity: 0; }
   }
 
   .stat-btn-foul {
@@ -3773,6 +3800,90 @@
   var statToast = document.getElementById('stat-toast');
   var statToastTimer = null;
 
+  // ── Audio feedback (Web Audio API — no files needed) ──
+  var audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function playStatSound(type) {
+    try {
+      var ctx = getAudioCtx();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'foul') {
+        // Low buzz for fouls
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.2);
+      } else if (type === 'score') {
+        // Bright rising chime for points
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.15);
+        // Second harmonic
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(900, ctx.currentTime + 0.06);
+        osc2.frequency.linearRampToValueAtTime(1200, ctx.currentTime + 0.14);
+        gain2.gain.setValueAtTime(0.12, ctx.currentTime + 0.06);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc2.start(ctx.currentTime + 0.06);
+        osc2.stop(ctx.currentTime + 0.2);
+      } else {
+        // Soft click for stats
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.08);
+      }
+    } catch(e) { /* audio not available */ }
+  }
+
+  // ── Haptic feedback ──
+  function triggerHaptic(type) {
+    if (!navigator.vibrate) return;
+    if (type === 'foul') {
+      navigator.vibrate([40, 30, 40]);
+    } else if (type === 'score') {
+      navigator.vibrate([20, 15, 20]);
+    } else {
+      navigator.vibrate(15);
+    }
+  }
+
+  // ── Visual flash overlay ──
+  var flashOverlay = document.getElementById('stat-flash-overlay');
+  function triggerFlash(type) {
+    var color;
+    if (type === 'foul') color = 'rgba(255,59,74,0.15)';
+    else if (type === 'stat') color = 'rgba(255,45,120,0.1)';
+    else color = 'rgba(255,107,43,0.12)';
+    flashOverlay.style.background = color;
+    flashOverlay.classList.remove('flash-active');
+    void flashOverlay.offsetWidth;
+    flashOverlay.classList.add('flash-active');
+  }
+
   function showStatToast(message, type) {
     if (statToastTimer) clearTimeout(statToastTimer);
     statToast.textContent = message;
@@ -3783,6 +3894,12 @@
     statToastTimer = setTimeout(function() {
       statToast.classList.remove('visible');
     }, 1200);
+
+    // Determine feedback category
+    var feedbackType = (type === 'foul') ? 'foul' : (type === 'stat' ? 'stat' : 'score');
+    triggerHaptic(feedbackType);
+    playStatSound(feedbackType);
+    triggerFlash(type || 'score');
   }
 
   function recordScore(playerName, points, side) {
@@ -4008,10 +4125,18 @@
   var scoreLabels = { 1: '+1 FREE THROW', 2: '+2 FIELD GOAL', 3: '+3 THREE POINTER' };
   var statLabels = { reb: '+1 REBOUND', ast: '+1 ASSIST', stl: '+1 STEAL', blk: '+1 BLOCK', miss: 'MISSED FG', tov: 'TURNOVER', ftmiss: 'FT MISS', pf: 'FOUL' };
 
+  function flashButton(btn) {
+    btn.classList.remove('btn-flash');
+    void btn.offsetWidth;
+    btn.classList.add('btn-flash');
+  }
+
   var scoreBtns = document.querySelectorAll('.score-btn');
   for (var si = 0; si < scoreBtns.length; si++) {
     scoreBtns[si].addEventListener('click', function() {
-      var pts = parseInt(this.getAttribute('data-pts'));
+      var btn = this;
+      var pts = parseInt(btn.getAttribute('data-pts'));
+      flashButton(btn);
       showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS'));
       recordScore(scoringPlayerName, pts, scoringPlayerSide || gameSide || 'home');
       closeScoringModal();
@@ -4021,8 +4146,10 @@
   var statBtns = document.querySelectorAll('.stat-btn');
   for (var sti = 0; sti < statBtns.length; sti++) {
     statBtns[sti].addEventListener('click', function() {
-      var stat = this.getAttribute('data-stat');
+      var btn = this;
+      var stat = btn.getAttribute('data-stat');
       var type = (stat === 'pf') ? 'foul' : 'stat';
+      flashButton(btn);
       showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type);
       recordStat(scoringPlayerName, stat);
       updateScoringModalStats();
@@ -5737,5 +5864,6 @@
   }
 })();
 </script>
+<div class="stat-flash-overlay" id="stat-flash-overlay"></div>
 </body>
 </html>
