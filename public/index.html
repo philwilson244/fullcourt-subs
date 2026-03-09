@@ -2711,6 +2711,7 @@
   </div>
 
   <div class="rotation-actions" id="rotation-actions">
+    <button class="rot-action-btn" id="rot-invite-coach-btn" style="display:none">Invite Coach</button>
     <button class="rot-action-btn" id="rot-scorekeeper-btn" style="display:none">Scorekeeper</button>
     <button class="rot-action-btn" id="rot-roster-btn">Edit Roster</button>
     <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
@@ -3015,6 +3016,7 @@
   var gameSetupGo = document.getElementById('game-setup-go');
   var gameInviteCoach = document.getElementById('game-invite-coach');
   var gameScorekeeperShare = document.getElementById('game-scorekeeper-share');
+  var rotInviteCoachBtn = document.getElementById('rot-invite-coach-btn');
   var rotScorekeeperBtn = document.getElementById('rot-scorekeeper-btn');
   var scorekeeperBadge = document.getElementById('scorekeeper-badge');
 
@@ -4114,6 +4116,21 @@
       });
     } else {
       copyToClipboard(skLink, rotScorekeeperBtn, 'Scorekeeper');
+    }
+  });
+
+  rotInviteCoachBtn.addEventListener('click', function() {
+    var inviteLink = window.location.origin + window.location.pathname + '?join=' + gameCode;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Join my game on Fullcourt',
+        text: (teamName || 'A team') + ' has invited you to join their game!',
+        url: inviteLink
+      }).catch(function() {
+        copyToClipboard(inviteLink, rotInviteCoachBtn, 'Invite Coach');
+      });
+    } else {
+      copyToClipboard(inviteLink, rotInviteCoachBtn, 'Invite Coach');
     }
   });
 
@@ -5496,11 +5513,13 @@
       scorekeeperBadge.style.display = 'none';
     }
 
-    // Show scorekeeper share button for coaches with active game
+    // Show share buttons for coaches with active game
     if (gameCode && !isScorekeeper) {
       rotScorekeeperBtn.style.display = '';
+      rotInviteCoachBtn.style.display = '';
     } else {
       rotScorekeeperBtn.style.display = 'none';
+      rotInviteCoachBtn.style.display = 'none';
     }
 
     render();
