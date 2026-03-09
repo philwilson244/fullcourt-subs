@@ -644,6 +644,34 @@
   .slot-remove:active { color: var(--red); }
   .slot-remove.hidden { visibility: hidden; }
 
+  /* Player Photo in Slot */
+  .slot-photo-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    border: none;
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .slot-photo-btn svg {
+    width: 18px; height: 18px;
+    fill: var(--text-3);
+    transition: fill 0.15s;
+  }
+  .slot-photo-btn:active svg { fill: var(--cyan); }
+  .slot-photo-btn img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .slot-photo-btn.has-photo svg { display: none; }
+
   /* Add Player Button */
   .add-player-btn {
     display: flex;
@@ -1792,6 +1820,66 @@
   .stat-btn .score-btn-label { color: var(--text-3); }
   .stat-btn:active .score-btn-label { color: var(--bg); }
 
+  .stat-toast {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px) scale(0.8);
+    background: var(--cyan);
+    color: var(--bg);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    padding: 10px 24px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(255,107,43,0.4);
+  }
+  .stat-toast.stat-toast-stat {
+    background: var(--magenta);
+    box-shadow: 0 4px 20px rgba(255,45,120,0.4);
+  }
+  .stat-toast.stat-toast-foul {
+    background: var(--red);
+    box-shadow: 0 4px 20px rgba(255,59,74,0.4);
+  }
+  .stat-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  /* Flash effect on buttons after tap */
+  .score-btn.btn-flash, .stat-btn.btn-flash {
+    animation: btnFlash 0.35s ease-out;
+  }
+  @keyframes btnFlash {
+    0%   { filter: brightness(2.5); transform: scale(1.08); }
+    100% { filter: brightness(1); transform: scale(1); }
+  }
+
+  /* Full-screen flash overlay */
+  .stat-flash-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .stat-flash-overlay.flash-active {
+    opacity: 1;
+    animation: flashFade 0.3s ease-out forwards;
+  }
+  @keyframes flashFade {
+    0%   { opacity: 0.25; }
+    100% { opacity: 0; }
+  }
+
   .stat-btn-foul {
     border-color: rgba(255,59,74,0.3);
     color: var(--red);
@@ -2231,6 +2319,229 @@
     margin-bottom: 8px;
   }
 
+  /* === SPECTATOR LIVE STATS === */
+  .spec-live-stats { margin-top: 16px; }
+  .spec-team-section { margin-bottom: 16px; }
+  .spec-team-header {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.5rem; font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--cyan);
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .spec-team-header.away-header { color: var(--text-2); }
+  .spec-player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 4px;
+  }
+  .spec-player-photo {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spec-player-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .spec-player-photo svg { width: 18px; height: 18px; fill: var(--text-3); }
+  .spec-player-info { flex: 1; min-width: 0; }
+  .spec-player-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem; font-weight: 800;
+    color: var(--text-1);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .spec-player-statline {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.38rem; font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .spec-player-pts {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 8px rgba(255,107,43,0.3);
+    min-width: 30px;
+    text-align: right;
+  }
+  .spec-clock-display {
+    text-align: center;
+    margin: 8px 0 4px;
+  }
+  .spec-clock-time {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem; font-weight: 900;
+    color: var(--text-1);
+    text-shadow: 0 0 12px rgba(255,107,43,0.2);
+  }
+  .spec-clock-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.35rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+
+  /* === SPORTS CARDS === */
+  .cards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    padding: 16px 0;
+  }
+  .sport-card {
+    width: 280px;
+    background: linear-gradient(160deg, #10131C 0%, #0B0D14 50%, #10131C 100%);
+    border: 1px solid var(--border-glow);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(255,107,43,0.08);
+  }
+  .sport-card-header {
+    position: relative;
+    height: 200px;
+    background: linear-gradient(180deg, var(--surface-3) 0%, var(--surface-1) 100%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .sport-card-header img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; top: 0; left: 0;
+  }
+  .sport-card-header .card-placeholder {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    border: 2px solid var(--border-glow);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+    z-index: 1;
+  }
+  .sport-card-header .card-placeholder svg {
+    width: 36px; height: 36px;
+    fill: var(--text-3);
+  }
+  .card-gradient-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(transparent, #10131C);
+    z-index: 1;
+  }
+  .sport-card-jersey {
+    position: absolute;
+    top: 10px; right: 12px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem; font-weight: 900;
+    color: rgba(255,107,43,0.2);
+    z-index: 2;
+    line-height: 1;
+  }
+  .sport-card-body {
+    padding: 14px 16px 12px;
+    position: relative;
+    z-index: 2;
+  }
+  .sport-card-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem; font-weight: 900;
+    color: var(--text-1);
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sport-card-team {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem; font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .sport-card-pts {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem; font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(255,107,43,0.4);
+    line-height: 1;
+  }
+  .sport-card-pts-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.35rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    margin-bottom: 10px;
+  }
+  .sport-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .card-stat {
+    text-align: center;
+    padding: 6px 4px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .card-stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem; font-weight: 900;
+    color: var(--text-1);
+    line-height: 1.2;
+  }
+  .card-stat-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.3rem; font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-3);
+  }
+  .sport-card-result {
+    margin-top: 10px;
+    padding: 8px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .sport-card-result-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem; font-weight: 900;
+    color: var(--text-1);
+    letter-spacing: 1px;
+  }
+  .sport-card-result-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.3rem; font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+  .sport-card-result-label.win { color: #4ADE80; }
+  .sport-card-result-label.loss { color: var(--red); }
+  .sport-card-result-label.tie { color: var(--text-2); }
+  .sport-card-watermark {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.3rem; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-3);
+    opacity: 0.4;
+    text-align: center;
+    padding: 8px 0 10px;
+  }
+
   /* === JOIN GAME SCREEN === */
   #join-game-screen {
     display: none;
@@ -2609,7 +2920,7 @@
 
   <button class="undo-btn" id="undo-btn" style="display:none" title="Undo">&#x21A9;</button>
 
-  <div class="sec">
+  <div class="sec" id="court-sec">
     <div class="sec-head">
       <div class="sec-icon court-icon">01</div>
       <div class="sec-title">ON THE COURT</div>
@@ -2618,7 +2929,7 @@
     <div class="p-grid" id="court-players"></div>
   </div>
 
-  <div class="sec sec-deck">
+  <div class="sec sec-deck" id="deck-sec">
     <div class="sec-head">
       <div class="sec-icon deck-icon">02</div>
       <div class="sec-title">ON DECK</div>
@@ -2627,12 +2938,31 @@
     <div class="p-grid" id="deck-players"></div>
   </div>
 
-  <div class="sec">
+  <div class="sec" id="sk-home-sec" style="display:none">
+    <div class="sec-head">
+      <div class="sec-icon court-icon">H</div>
+      <div class="sec-title" id="sk-home-title">HOME TEAM</div>
+      <div class="sec-line court-line"></div>
+    </div>
+    <div class="p-grid" id="sk-home-grid"></div>
+  </div>
+
+  <div class="sec" id="sk-away-sec" style="display:none">
+    <div class="sec-head">
+      <div class="sec-icon deck-icon">A</div>
+      <div class="sec-title" id="sk-away-title">AWAY TEAM</div>
+      <div class="sec-line deck-line"></div>
+    </div>
+    <div class="p-grid" id="sk-away-grid"></div>
+  </div>
+
+  <div class="sec" id="sub-schedule-sec">
     <div class="queue-label">SUBSTITUTION SCHEDULE</div>
     <div class="q-grid" id="rotation-list"></div>
   </div>
 
   <div class="rotation-actions" id="rotation-actions">
+    <button class="rot-action-btn" id="rot-invite-coach-btn" style="display:none">Invite Coach</button>
     <button class="rot-action-btn" id="rot-scorekeeper-btn" style="display:none">Scorekeeper</button>
     <button class="rot-action-btn" id="rot-roster-btn">Edit Roster</button>
     <button class="rot-action-btn rot-danger" id="rot-reset-btn">Reset</button>
@@ -2714,7 +3044,8 @@
 
 <!-- ── Scoring Modal ── -->
 <div class="modal-overlay" id="scoring-modal">
-  <div class="modal">
+  <div class="modal" style="position:relative">
+    <div class="stat-toast" id="stat-toast"></div>
     <div class="modal-handle"></div>
     <h2 id="scoring-player-name">PLAYER</h2>
     <div class="scoring-player-stats" id="scoring-player-stats-line"></div>
@@ -2752,7 +3083,7 @@
   <div class="sec">
     <div class="sec-head">
       <div class="sec-icon court-icon">ST</div>
-      <div class="sec-title">PLAYER STATS</div>
+      <div class="sec-title">PLAYER CARDS</div>
       <div class="sec-line court-line"></div>
     </div>
     <div id="summary-player-stats"></div>
@@ -2805,15 +3136,28 @@
       <div class="spec-team-name" id="spec-away-name">AWAY</div>
     </div>
   </div>
+  <div class="spec-clock-display" id="spec-clock-display" style="display:none">
+    <div class="spec-clock-time" id="spec-clock-time">0:00</div>
+    <div class="spec-clock-label">GAME CLOCK</div>
+  </div>
+  <div class="spec-live-stats" id="spec-live-stats">
+    <div class="spec-team-section">
+      <div class="spec-team-header" id="spec-home-team-header">HOME</div>
+      <div id="spec-home-players"></div>
+    </div>
+    <div class="spec-team-section">
+      <div class="spec-team-header away-header" id="spec-away-team-header">AWAY</div>
+      <div id="spec-away-players"></div>
+    </div>
+  </div>
   <div class="spec-feed">
-    <div class="spec-feed-label">SCORING PLAYS</div>
+    <div class="spec-feed-label">RECENT PLAYS</div>
     <div id="spec-feed-list"></div>
     <div class="history-empty" id="spec-feed-empty">No scoring plays yet.</div>
   </div>
   <div id="spec-summary" style="display:none">
-    <div class="spec-feed-label" style="margin-top:20px">PLAYER STATS</div>
-    <div id="spec-home-stats"></div>
-    <div id="spec-away-stats" style="margin-top:16px"></div>
+    <div class="spec-feed-label" style="margin-top:20px">PLAYER CARDS</div>
+    <div class="cards-grid" id="spec-cards-grid"></div>
   </div>
   <div class="spec-not-found" id="spec-not-found" style="display:none">
     <h2>GAME NOT FOUND</h2>
@@ -2832,6 +3176,7 @@
   var STORAGE_GAME_CODE = 'fullcourt_game_code';
   var STORAGE_GAME_SIDE = 'fullcourt_game_side';
   var STORAGE_JERSEY = 'fullcourt_jerseys';
+  var STORAGE_PHOTOS = 'fullcourt_photos';
 
   // Supabase
   var SUPABASE_URL = 'https://tniyivhikkoxcmtzqoqw.supabase.co';
@@ -2936,6 +3281,7 @@
   var gameSetupGo = document.getElementById('game-setup-go');
   var gameInviteCoach = document.getElementById('game-invite-coach');
   var gameScorekeeperShare = document.getElementById('game-scorekeeper-share');
+  var rotInviteCoachBtn = document.getElementById('rot-invite-coach-btn');
   var rotScorekeeperBtn = document.getElementById('rot-scorekeeper-btn');
   var scorekeeperBadge = document.getElementById('scorekeeper-badge');
 
@@ -3008,12 +3354,17 @@
   var awayTeamName = '';
   var awayTeamLogo = '';
   var playerStats = {};    // { "Player": { pts:0, fgm:0, tpm:0, ftm:0 } }
+  var homePlayerStats = {};  // Scorekeeper: home team stats
+  var awayPlayerStats = {};  // Scorekeeper: away team stats
+  var homeRoster = [];       // Scorekeeper: home team player names
+  var awayRoster = [];       // Scorekeeper: away team player names
   var scoringPlays = [];
   var playOrderCounter = 0;
   var isSpectatorView = false;
   var spectatorPollTimer = null;
   var coachPollTimer = null;
   var scoringPlayerName = '';
+  var scoringPlayerSide = '';  // 'home' or 'away' — for scorekeeper to know which team
 
   // Clock state
   var clockSeconds = 0;
@@ -3030,6 +3381,7 @@
 
   // Jersey numbers
   var jerseyNumbers = {};  // { "PlayerName": "23" }
+  var playerPhotos = {};   // { "PlayerName": "data:image/jpeg;base64,..." }
 
   // ══════════════════════════════
   // SUPABASE SYNC
@@ -3219,9 +3571,57 @@
     updateAddBtn();
   }
 
+  var PERSON_SVG = '<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+
   function addSlotDOM(num, val, jerseyVal) {
     var slot = document.createElement('div');
     slot.className = 'player-slot';
+
+    // Photo button
+    var photoBtn = document.createElement('button');
+    photoBtn.type = 'button';
+    photoBtn.className = 'slot-photo-btn';
+    var existingPhoto = val && playerPhotos[val];
+    if (existingPhoto) {
+      photoBtn.innerHTML = '<img src="' + existingPhoto + '" alt="">';
+      photoBtn.classList.add('has-photo');
+    } else {
+      photoBtn.innerHTML = PERSON_SVG;
+    }
+    var photoFileInput = document.createElement('input');
+    photoFileInput.type = 'file';
+    photoFileInput.accept = 'image/*';
+    photoFileInput.style.display = 'none';
+    photoBtn.addEventListener('click', function() { photoFileInput.click(); });
+    photoFileInput.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file || !file.type.startsWith('image/')) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var maxW = 200;
+          var w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+          if (h > maxW) { w = Math.round(w * maxW / h); h = maxW; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          var playerName = slot.querySelector('.slot-input').value.trim();
+          if (playerName) {
+            playerPhotos[playerName] = dataUrl;
+            savePhotos();
+          }
+          photoBtn.innerHTML = '<img src="' + dataUrl + '" alt="">';
+          photoBtn.classList.add('has-photo');
+          photoBtn.dataset.pendingPhoto = dataUrl;
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+      photoFileInput.value = '';
+    });
 
     var jerseyInput = document.createElement('input');
     jerseyInput.type = 'tel';
@@ -3242,11 +3642,19 @@
     removeBtn.innerHTML = '&times;';
     removeBtn.type = 'button';
     removeBtn.addEventListener('click', function() {
+      // Remove photo if exists
+      var pName = input.value.trim();
+      if (pName && playerPhotos[pName]) {
+        delete playerPhotos[pName];
+        savePhotos();
+      }
       slot.remove();
       renumberSlots();
       updateAddBtn();
     });
 
+    slot.appendChild(photoBtn);
+    slot.appendChild(photoFileInput);
     slot.appendChild(jerseyInput);
     slot.appendChild(input);
     slot.appendChild(removeBtn);
@@ -3280,13 +3688,19 @@
     for (var i = 0; i < slots.length; i++) {
       var nameInput = slots[i].querySelector('.slot-input');
       var jerseyInput = slots[i].querySelector('.slot-jersey');
+      var photoBtn = slots[i].querySelector('.slot-photo-btn');
       var v = nameInput ? nameInput.value.trim() : '';
       if (v) {
         names.push(v);
         var j = jerseyInput ? jerseyInput.value.trim() : '';
         if (j) jerseyNumbers[v] = j;
+        // Capture pending photo (uploaded before name was entered)
+        if (photoBtn && photoBtn.dataset.pendingPhoto && !playerPhotos[v]) {
+          playerPhotos[v] = photoBtn.dataset.pendingPhoto;
+        }
       }
     }
+    savePhotos();
     return names;
   }
 
@@ -3342,6 +3756,12 @@
   function saveRoster() {
     localStorage.setItem(STORAGE_ROSTER, JSON.stringify(roster));
     syncToSupabase();
+  }
+
+  function savePhotos() {
+    try {
+      localStorage.setItem(STORAGE_PHOTOS, JSON.stringify(playerPhotos));
+    } catch (e) { /* localStorage quota exceeded — photos are large */ }
   }
 
   function saveLogo() {
@@ -3446,7 +3866,11 @@
   function initPlayerStats() {
     playerStats = {};
     for (var i = 0; i < activeRoster.length; i++) {
-      playerStats[activeRoster[i]] = { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0, stl: 0, blk: 0, pf: 0, fga: 0, tpa: 0, fta: 0, min: 0 };
+      var name = activeRoster[i];
+      var stat = { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0, stl: 0, blk: 0, pf: 0, fga: 0, tpa: 0, fta: 0, min: 0 };
+      if (playerPhotos[name]) stat.photo = playerPhotos[name];
+      if (jerseyNumbers[name]) stat.jersey = jerseyNumbers[name];
+      playerStats[name] = stat;
     }
   }
 
@@ -3500,20 +3924,35 @@
     var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
 
     var update = { updated_at: new Date().toISOString(), current_quarter: currentQ };
-    if (gameSide === 'home') {
+
+    // Scorekeeper writes both teams' stats directly
+    if (isScorekeeper) {
       update.home_score = homeScore;
-      update.home_player_stats = playerStats;
-      update.home_sub_history = subHistory;
-    } else {
       update.away_score = awayScore;
-      update.away_player_stats = playerStats;
-      update.away_sub_history = subHistory;
+      update.home_player_stats = homePlayerStats;
+      update.away_player_stats = awayPlayerStats;
+    } else {
+      if (gameSide === 'home') {
+        update.home_score = homeScore;
+        update.home_player_stats = playerStats;
+        update.home_sub_history = subHistory;
+      } else {
+        update.away_score = awayScore;
+        update.away_player_stats = playerStats;
+        update.away_sub_history = subHistory;
+      }
+      // Always update the opponent score from our side too
+      if (gameSide === 'home') {
+        update.away_score = awayScore;
+      } else {
+        update.home_score = homeScore;
+      }
     }
-    // Always update the opponent score from our side too
-    if (gameSide === 'home') {
-      update.away_score = awayScore;
-    } else {
-      update.home_score = homeScore;
+
+    // Sync clock state from coach
+    if (!isScorekeeper) {
+      update.clock_seconds = clockSeconds;
+      update.clock_running = clockRunning;
     }
 
     sb.from('games').update(update).eq('game_code', gameCode).then(function() {});
@@ -3538,9 +3977,17 @@
   }
 
   function recordStat(playerName, statType) {
-    if (!playerStats[playerName]) return;
+    // Determine which stats object to use
+    var stats;
+    if (isScorekeeper) {
+      stats = (scoringPlayerSide === 'home') ? homePlayerStats : awayPlayerStats;
+    } else {
+      stats = playerStats;
+    }
+
+    if (!stats[playerName]) return;
     // Ensure new stat fields exist (for games created before this update)
-    var p = playerStats[playerName];
+    var p = stats[playerName];
     if (p.stl === undefined) p.stl = 0;
     if (p.blk === undefined) p.blk = 0;
     if (p.pf === undefined) p.pf = 0;
@@ -3551,26 +3998,26 @@
 
     // Handle special stat types
     if (statType === 'ftmiss') {
-      playerStats[playerName].fta++;
-      undoStack.push({ type: 'stat', playerName: playerName, statType: 'ftmiss' });
+      stats[playerName].fta++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: 'ftmiss', side: scoringPlayerSide });
     } else if (statType === 'pf') {
-      playerStats[playerName].pf++;
+      stats[playerName].pf++;
       // Track team fouls for current quarter
       var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
       if (!teamFouls[currentQ]) teamFouls[currentQ] = 0;
       teamFouls[currentQ]++;
-      undoStack.push({ type: 'stat', playerName: playerName, statType: 'pf', quarter: currentQ });
+      undoStack.push({ type: 'stat', playerName: playerName, statType: 'pf', quarter: currentQ, side: scoringPlayerSide });
       // Fouled out warning
-      if (playerStats[playerName].pf >= 5) {
+      if (stats[playerName].pf >= 5) {
         setTimeout(function() { alert(playerName + ' has fouled out! (5 fouls)'); }, 100);
       }
     } else if (statType === 'miss') {
-      playerStats[playerName].miss++;
-      playerStats[playerName].fga++;
-      undoStack.push({ type: 'stat', playerName: playerName, statType: 'miss' });
+      stats[playerName].miss++;
+      stats[playerName].fga++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: 'miss', side: scoringPlayerSide });
     } else {
-      playerStats[playerName][statType]++;
-      undoStack.push({ type: 'stat', playerName: playerName, statType: statType });
+      stats[playerName][statType]++;
+      undoStack.push({ type: 'stat', playerName: playerName, statType: statType, side: scoringPlayerSide });
     }
 
     // Cap undo stack
@@ -3597,7 +4044,10 @@
   function startClock() {
     if (clockRunning || clockSeconds <= 0) return;
     clockRunning = true;
-    clockInterval = setInterval(tickClock, 1000);
+    // Scorekeeper doesn't tick locally — clock updates via polling
+    if (!isScorekeeper) {
+      clockInterval = setInterval(tickClock, 1000);
+    }
     renderClock();
   }
 
@@ -3610,6 +4060,8 @@
   function toggleClock() {
     if (clockRunning) pauseClock();
     else startClock();
+    // Push clock state immediately so scorekeepers see it
+    if (gameCode && !isScorekeeper) syncGameToSupabase();
   }
 
   var clockTickCounter = 0;
@@ -3685,6 +4137,111 @@
     }
   }
 
+  var statToast = document.getElementById('stat-toast');
+  var statToastTimer = null;
+
+  // ── Audio feedback (Web Audio API — no files needed) ──
+  var audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function playStatSound(type) {
+    try {
+      var ctx = getAudioCtx();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'foul') {
+        // Low buzz for fouls
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.2);
+      } else if (type === 'score') {
+        // Bright rising chime for points
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.15);
+        // Second harmonic
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(900, ctx.currentTime + 0.06);
+        osc2.frequency.linearRampToValueAtTime(1200, ctx.currentTime + 0.14);
+        gain2.gain.setValueAtTime(0.12, ctx.currentTime + 0.06);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc2.start(ctx.currentTime + 0.06);
+        osc2.stop(ctx.currentTime + 0.2);
+      } else {
+        // Soft click for stats
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.08);
+      }
+    } catch(e) { /* audio not available */ }
+  }
+
+  // ── Haptic feedback ──
+  function triggerHaptic(type) {
+    if (!navigator.vibrate) return;
+    if (type === 'foul') {
+      navigator.vibrate([40, 30, 40]);
+    } else if (type === 'score') {
+      navigator.vibrate([20, 15, 20]);
+    } else {
+      navigator.vibrate(15);
+    }
+  }
+
+  // ── Visual flash overlay ──
+  var flashOverlay = document.getElementById('stat-flash-overlay');
+  function triggerFlash(type) {
+    var color;
+    if (type === 'foul') color = 'rgba(255,59,74,0.15)';
+    else if (type === 'stat') color = 'rgba(255,45,120,0.1)';
+    else color = 'rgba(255,107,43,0.12)';
+    flashOverlay.style.background = color;
+    flashOverlay.classList.remove('flash-active');
+    void flashOverlay.offsetWidth;
+    flashOverlay.classList.add('flash-active');
+  }
+
+  function showStatToast(message, type) {
+    if (statToastTimer) clearTimeout(statToastTimer);
+    statToast.textContent = message;
+    statToast.className = 'stat-toast' + (type ? ' stat-toast-' + type : '');
+    // Force reflow so transition replays if already visible
+    void statToast.offsetWidth;
+    statToast.classList.add('visible');
+    statToastTimer = setTimeout(function() {
+      statToast.classList.remove('visible');
+    }, 1200);
+
+    // Determine feedback category
+    var feedbackType = (type === 'foul') ? 'foul' : (type === 'stat' ? 'stat' : 'score');
+    triggerHaptic(feedbackType);
+    playStatSound(feedbackType);
+    triggerFlash(type || 'score');
+  }
+
   function recordScore(playerName, points, side) {
     if (side === 'home') {
       homeScore += points;
@@ -3692,10 +4249,21 @@
       awayScore += points;
     }
 
-    // Update player stats if this is OUR player (not opponent)
-    var ourSide = gameSide || 'home';
-    if (side === ourSide && playerStats[playerName]) {
-      var ps = playerStats[playerName];
+    // Determine which stats object to update
+    var stats;
+    if (isScorekeeper) {
+      stats = (side === 'home') ? homePlayerStats : awayPlayerStats;
+    } else {
+      stats = playerStats;
+    }
+
+    // Update player stats
+    var shouldUpdateStats = isScorekeeper
+      ? (stats[playerName] !== undefined)
+      : (side === (gameSide || 'home') && playerStats[playerName]);
+
+    if (shouldUpdateStats && stats[playerName]) {
+      var ps = stats[playerName];
       if (ps.fga === undefined) ps.fga = 0;
       if (ps.tpa === undefined) ps.tpa = 0;
       if (ps.fta === undefined) ps.fta = 0;
@@ -3739,15 +4307,24 @@
 
   var scoringPlayerStatsLine = document.getElementById('scoring-player-stats-line');
 
+  function getStatsForPlayer(name) {
+    if (isScorekeeper) {
+      var sideStats = (scoringPlayerSide === 'home') ? homePlayerStats : awayPlayerStats;
+      return sideStats[name];
+    }
+    return playerStats[name];
+  }
+
   function updateScoringModalStats() {
-    var s = playerStats[scoringPlayerName];
+    var s = getStatsForPlayer(scoringPlayerName);
     if (!s) { scoringPlayerStatsLine.textContent = ''; return; }
     scoringPlayerStatsLine.textContent =
       s.pts + ' PTS  ' + (s.reb || 0) + ' REB  ' + (s.ast || 0) + ' AST  ' + (s.stl || 0) + ' STL  ' + (s.blk || 0) + ' BLK  ' + (s.pf || 0) + ' PF';
   }
 
-  function openScoringModal(name) {
+  function openScoringModal(name, side) {
     scoringPlayerName = name;
+    scoringPlayerSide = side || gameSide || 'home';
     var jersey = jerseyNumbers[name];
     scoringPlayerNameEl.textContent = (jersey ? '#' + jersey + ' ' : '') + name.toUpperCase();
     updateScoringModalStats();
@@ -3880,16 +4457,43 @@
     }
   });
 
+  rotInviteCoachBtn.addEventListener('click', function() {
+    var inviteLink = window.location.origin + window.location.pathname + '?join=' + gameCode;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Join my game on Fullcourt',
+        text: (teamName || 'A team') + ' has invited you to join their game!',
+        url: inviteLink
+      }).catch(function() {
+        copyToClipboard(inviteLink, rotInviteCoachBtn, 'Invite Coach');
+      });
+    } else {
+      copyToClipboard(inviteLink, rotInviteCoachBtn, 'Invite Coach');
+    }
+  });
+
   // ── Scoring Modal Events ──
 
   scoringCancelBtn.addEventListener('click', closeScoringModal);
   scoringModal.addEventListener('click', function(e) { if (e.target === scoringModal) closeScoringModal(); });
 
+  var scoreLabels = { 1: '+1 FREE THROW', 2: '+2 FIELD GOAL', 3: '+3 THREE POINTER' };
+  var statLabels = { reb: '+1 REBOUND', ast: '+1 ASSIST', stl: '+1 STEAL', blk: '+1 BLOCK', miss: 'MISSED FG', tov: 'TURNOVER', ftmiss: 'FT MISS', pf: 'FOUL' };
+
+  function flashButton(btn) {
+    btn.classList.remove('btn-flash');
+    void btn.offsetWidth;
+    btn.classList.add('btn-flash');
+  }
+
   var scoreBtns = document.querySelectorAll('.score-btn');
   for (var si = 0; si < scoreBtns.length; si++) {
     scoreBtns[si].addEventListener('click', function() {
-      var pts = parseInt(this.getAttribute('data-pts'));
-      recordScore(scoringPlayerName, pts, gameSide || 'home');
+      var btn = this;
+      var pts = parseInt(btn.getAttribute('data-pts'));
+      flashButton(btn);
+      showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS'));
+      recordScore(scoringPlayerName, pts, scoringPlayerSide || gameSide || 'home');
       closeScoringModal();
     });
   }
@@ -3897,9 +4501,12 @@
   var statBtns = document.querySelectorAll('.stat-btn');
   for (var sti = 0; sti < statBtns.length; sti++) {
     statBtns[sti].addEventListener('click', function() {
-      var stat = this.getAttribute('data-stat');
+      var btn = this;
+      var stat = btn.getAttribute('data-stat');
+      var type = (stat === 'pf') ? 'foul' : 'stat';
+      flashButton(btn);
+      showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type);
       recordStat(scoringPlayerName, stat);
-      // Update the stat line in the modal without closing
       updateScoringModalStats();
     });
   }
@@ -3907,7 +4514,7 @@
   // ── Clock Tap Handler ──
   document.querySelector('.sb-clock').addEventListener('click', function() {
     if (rotationScreen.style.display === 'none') return;
-    if (isSpectatorView) return;
+    if (isSpectatorView || isScorekeeper) return;
     var totalExpectedSubs = numQuarters * subsPerQuarter;
     if (totalSubs >= totalExpectedSubs) return; // game over
     if (clockSeconds === 0 && !clockRunning) initClock();
@@ -3919,20 +4526,28 @@
     if (undoStack.length === 0) return;
     var last = undoStack.pop();
 
+    // Determine which stats object to modify
+    var undoStats;
+    if (isScorekeeper && last.side) {
+      undoStats = (last.side === 'home') ? homePlayerStats : awayPlayerStats;
+    } else {
+      undoStats = playerStats;
+    }
+
     if (last.type === 'stat') {
       if (last.statType === 'ftmiss') {
-        if (playerStats[last.playerName]) playerStats[last.playerName].fta = Math.max(0, (playerStats[last.playerName].fta || 0) - 1);
+        if (undoStats[last.playerName]) undoStats[last.playerName].fta = Math.max(0, (undoStats[last.playerName].fta || 0) - 1);
       } else if (last.statType === 'pf') {
-        if (playerStats[last.playerName]) playerStats[last.playerName].pf = Math.max(0, (playerStats[last.playerName].pf || 0) - 1);
+        if (undoStats[last.playerName]) undoStats[last.playerName].pf = Math.max(0, (undoStats[last.playerName].pf || 0) - 1);
         if (last.quarter && teamFouls[last.quarter]) teamFouls[last.quarter] = Math.max(0, teamFouls[last.quarter] - 1);
       } else if (last.statType === 'miss') {
-        if (playerStats[last.playerName]) {
-          playerStats[last.playerName].miss = Math.max(0, (playerStats[last.playerName].miss || 0) - 1);
-          playerStats[last.playerName].fga = Math.max(0, (playerStats[last.playerName].fga || 0) - 1);
+        if (undoStats[last.playerName]) {
+          undoStats[last.playerName].miss = Math.max(0, (undoStats[last.playerName].miss || 0) - 1);
+          undoStats[last.playerName].fga = Math.max(0, (undoStats[last.playerName].fga || 0) - 1);
         }
       } else {
-        if (playerStats[last.playerName] && playerStats[last.playerName][last.statType] !== undefined) {
-          playerStats[last.playerName][last.statType] = Math.max(0, playerStats[last.playerName][last.statType] - 1);
+        if (undoStats[last.playerName] && undoStats[last.playerName][last.statType] !== undefined) {
+          undoStats[last.playerName][last.statType] = Math.max(0, undoStats[last.playerName][last.statType] - 1);
         }
       }
     } else if (last.type === 'score') {
@@ -3940,13 +4555,12 @@
       if (last.side === 'home') homeScore = Math.max(0, homeScore - last.points);
       else awayScore = Math.max(0, awayScore - last.points);
 
-      // Reverse player stat counters (only for our players)
-      var ourSide = gameSide || 'home';
-      if (last.side === ourSide && playerStats[last.playerName]) {
-        playerStats[last.playerName].pts = Math.max(0, playerStats[last.playerName].pts - last.points);
-        if (last.points === 1) { playerStats[last.playerName].ftm = Math.max(0, playerStats[last.playerName].ftm - 1); playerStats[last.playerName].fta = Math.max(0, (playerStats[last.playerName].fta||0) - 1); }
-        else if (last.points === 2) { playerStats[last.playerName].fgm = Math.max(0, playerStats[last.playerName].fgm - 1); playerStats[last.playerName].fga = Math.max(0, (playerStats[last.playerName].fga||0) - 1); }
-        else if (last.points === 3) { playerStats[last.playerName].tpm = Math.max(0, playerStats[last.playerName].tpm - 1); playerStats[last.playerName].tpa = Math.max(0, (playerStats[last.playerName].tpa||0) - 1); playerStats[last.playerName].fga = Math.max(0, (playerStats[last.playerName].fga||0) - 1); }
+      // Reverse player stat counters
+      if (undoStats[last.playerName]) {
+        undoStats[last.playerName].pts = Math.max(0, undoStats[last.playerName].pts - last.points);
+        if (last.points === 1) { undoStats[last.playerName].ftm = Math.max(0, undoStats[last.playerName].ftm - 1); undoStats[last.playerName].fta = Math.max(0, (undoStats[last.playerName].fta||0) - 1); }
+        else if (last.points === 2) { undoStats[last.playerName].fgm = Math.max(0, undoStats[last.playerName].fgm - 1); undoStats[last.playerName].fga = Math.max(0, (undoStats[last.playerName].fga||0) - 1); }
+        else if (last.points === 3) { undoStats[last.playerName].tpm = Math.max(0, undoStats[last.playerName].tpm - 1); undoStats[last.playerName].tpa = Math.max(0, (undoStats[last.playerName].tpa||0) - 1); undoStats[last.playerName].fga = Math.max(0, (undoStats[last.playerName].fga||0) - 1); }
       }
 
       // Remove last scoring play
@@ -3985,11 +4599,6 @@
 
   function renderSummary() {
     // Final score
-    var homeName = teamName || 'Home';
-    var oppName = awayTeamName || 'Opponent';
-    if (gameSide === 'away') {
-      var tmp = homeName; homeName = oppName; oppName = tmp;
-    }
     var summaryOurScore = gameSide === 'away' ? awayScore : homeScore;
     var summaryTheirScore = gameSide === 'away' ? homeScore : awayScore;
     summaryFinalScore.innerHTML =
@@ -3999,31 +4608,21 @@
       '<div class="summary-team"><div class="summary-team-name">' + escHtml(awayTeamName || 'Opponent') + '</div>' +
       '<div class="summary-team-score away">' + summaryTheirScore + '</div></div>';
 
-    // Player stats table
-    var hasStats = false;
-    var rows = '';
-    for (var i = 0; i < activeRoster.length; i++) {
-      var name = activeRoster[i];
+    // Sports cards for each player
+    var cardsHtml = '';
+    var sortedRoster = activeRoster.slice().sort(function(a, b) {
+      return ((playerStats[b] && playerStats[b].pts) || 0) - ((playerStats[a] && playerStats[a].pts) || 0);
+    });
+    for (var i = 0; i < sortedRoster.length; i++) {
+      var name = sortedRoster[i];
       var s = playerStats[name] || { pts: 0, fgm: 0, tpm: 0, ftm: 0, reb: 0, ast: 0, miss: 0, tov: 0, stl: 0, blk: 0, pf: 0, fga: 0, tpa: 0, fta: 0, min: 0 };
-      if (s.pts > 0 || s.reb > 0 || s.ast > 0 || s.miss > 0 || s.tov > 0 || s.stl > 0 || s.blk > 0 || s.pf > 0) hasStats = true;
-      var fgPct = (s.fga || 0) > 0 ? Math.round(((s.fgm || 0) / s.fga) * 100) : 0;
-      var tpPct = (s.tpa || 0) > 0 ? Math.round(((s.tpm || 0) / s.tpa) * 100) : 0;
-      var ftPct = (s.fta || 0) > 0 ? Math.round(((s.ftm || 0) / s.fta) * 100) : 0;
-      var minSec = s.min || 0;
-      var minStr = Math.floor(minSec / 60) + ':' + (minSec % 60 < 10 ? '0' : '') + (minSec % 60);
-      var jersey = jerseyNumbers[name] || '';
-      rows += '<tr><td>' + (jersey ? '#' + escHtml(jersey) + ' ' : '') + escHtml(name) + '</td><td class="pts-cell">' + s.pts + '</td>' +
-        '<td>' + (s.fgm||0) + '/' + (s.fga||0) + '</td><td>' + (s.tpm||0) + '/' + (s.tpa||0) + '</td><td>' + (s.ftm||0) + '/' + (s.fta||0) + '</td>' +
-        '<td>' + fgPct + '</td><td>' + tpPct + '</td><td>' + ftPct + '</td>' +
-        '<td>' + (s.reb || 0) + '</td><td>' + (s.ast || 0) + '</td>' +
-        '<td>' + (s.stl || 0) + '</td><td>' + (s.blk || 0) + '</td>' +
-        '<td>' + (s.tov || 0) + '</td><td>' + (s.pf || 0) + '</td>' +
-        '<td>' + minStr + '</td></tr>';
+      // Ensure photo and jersey are on the stat object for the card renderer
+      if (!s.photo && playerPhotos[name]) s.photo = playerPhotos[name];
+      if (!s.jersey && jerseyNumbers[name]) s.jersey = jerseyNumbers[name];
+      cardsHtml += renderSportCard(name, s, teamName || 'My Team', summaryOurScore, summaryTheirScore);
     }
-    if (hasStats || activeRoster.length > 0) {
-      summaryPlayerStats.innerHTML =
-        '<div class="stat-table-wrap"><table class="stat-table"><thead><tr><th>Player</th><th>PTS</th><th>FG</th><th>3PT</th><th>FT</th><th>FG%</th><th>3P%</th><th>FT%</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TOV</th><th>PF</th><th>MIN</th></tr></thead><tbody>' +
-        rows + '</tbody></table></div>';
+    if (cardsHtml) {
+      summaryPlayerStats.innerHTML = '<div class="cards-grid">' + cardsHtml + '</div>';
     } else {
       summaryPlayerStats.innerHTML = '<div class="history-empty">No player stats.</div>';
     }
@@ -4343,19 +4942,35 @@
         awayTeamLogo = g.home_team_logo || '';
       }
 
-      // Extract roster + stats from player_stats JSONB
-      var statsData = (side === 'home') ? g.home_player_stats : g.away_player_stats;
+      // Extract roster + stats from BOTH teams' player_stats JSONB
+      var homeStatsData = g.home_player_stats;
+      var awayStatsData = g.away_player_stats;
       var historyData = (side === 'home') ? g.home_sub_history : g.away_sub_history;
 
-      activeRoster = [];
-      playerStats = {};
-      if (statsData && typeof statsData === 'object') {
-        var names = Object.keys(statsData);
-        for (var i = 0; i < names.length; i++) {
-          activeRoster.push(names[i]);
-          playerStats[names[i]] = statsData[names[i]];
+      // Load both teams' rosters and stats for scorekeeper
+      homePlayerStats = {};
+      awayPlayerStats = {};
+      homeRoster = [];
+      awayRoster = [];
+
+      if (homeStatsData && typeof homeStatsData === 'object') {
+        var hNames = Object.keys(homeStatsData);
+        for (var hi = 0; hi < hNames.length; hi++) {
+          homeRoster.push(hNames[hi]);
+          homePlayerStats[hNames[hi]] = homeStatsData[hNames[hi]];
         }
       }
+      if (awayStatsData && typeof awayStatsData === 'object') {
+        var aNames = Object.keys(awayStatsData);
+        for (var ai = 0; ai < aNames.length; ai++) {
+          awayRoster.push(aNames[ai]);
+          awayPlayerStats[aNames[ai]] = awayStatsData[aNames[ai]];
+        }
+      }
+
+      // For rotation display, use the scorekeeper's side roster
+      activeRoster = (side === 'home') ? homeRoster.slice() : awayRoster.slice();
+      playerStats = (side === 'home') ? homePlayerStats : awayPlayerStats;
       roster = activeRoster.slice();
 
       // Rebuild rotation groups and restore state
@@ -4363,6 +4978,14 @@
       subHistory = historyData || [];
       totalSubs = subHistory.length;
       currentIndex = totalSubs % groups.length;
+
+      // Sync clock from game state
+      if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
+        clockSeconds = g.clock_seconds;
+      }
+      if (g.clock_running) {
+        startClock();
+      }
 
       // Load scoring plays
       sb.from('scoring_plays').select('*').eq('game_code', scoreCode)
@@ -4390,7 +5013,7 @@
     if (scorekeeperPollTimer) clearInterval(scorekeeperPollTimer);
     scorekeeperPollTimer = setInterval(function() {
       pollScorekeeperUpdate();
-    }, 6000);
+    }, 3000);
   }
 
   function pollScorekeeperUpdate() {
@@ -4412,10 +5035,32 @@
         currentIndex = totalSubs % groups.length;
       }
 
-      // Update player stats (last-write-wins)
-      var statsData = (side === 'home') ? g.home_player_stats : g.away_player_stats;
-      if (statsData) {
-        playerStats = statsData;
+      // Update BOTH teams' player stats
+      if (g.home_player_stats && typeof g.home_player_stats === 'object') {
+        homePlayerStats = g.home_player_stats;
+        var hNames = Object.keys(homePlayerStats);
+        homeRoster = [];
+        for (var hi = 0; hi < hNames.length; hi++) homeRoster.push(hNames[hi]);
+      }
+      if (g.away_player_stats && typeof g.away_player_stats === 'object') {
+        awayPlayerStats = g.away_player_stats;
+        var aNames = Object.keys(awayPlayerStats);
+        awayRoster = [];
+        for (var ai = 0; ai < aNames.length; ai++) awayRoster.push(aNames[ai]);
+      }
+
+      // Keep playerStats pointing to our side for rotation display
+      playerStats = (side === 'home') ? homePlayerStats : awayPlayerStats;
+      activeRoster = (side === 'home') ? homeRoster.slice() : awayRoster.slice();
+
+      // Sync clock state from coach
+      if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
+        clockSeconds = g.clock_seconds;
+      }
+      if (g.clock_running && !clockRunning) {
+        startClock();
+      } else if (!g.clock_running && clockRunning) {
+        pauseClock();
       }
 
       // Check for game end
@@ -4502,6 +5147,80 @@
       '<tbody>' + rows + '</tbody></table></div>';
   }
 
+  function renderSpecPlayerRow(name, stats) {
+    var photo = stats.photo || '';
+    var jersey = stats.jersey || '';
+    var photoHtml = photo
+      ? '<img src="' + photo + '" alt="">'
+      : '<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+    var statline = (stats.reb||0) + ' REB  ' + (stats.ast||0) + ' AST  ' + (stats.stl||0) + ' STL  ' + (stats.pf||0) + ' PF';
+    return '<div class="spec-player-row">' +
+      '<div class="spec-player-photo">' + photoHtml + '</div>' +
+      '<div class="spec-player-info">' +
+        '<div class="spec-player-name">' + (jersey ? '#' + escHtml(jersey) + ' ' : '') + escHtml(name) + '</div>' +
+        '<div class="spec-player-statline">' + statline + '</div>' +
+      '</div>' +
+      '<div class="spec-player-pts">' + (stats.pts || 0) + '</div>' +
+    '</div>';
+  }
+
+  function renderSpecTeamPlayers(containerId, statsObj) {
+    var container = document.getElementById(containerId);
+    if (!statsObj || typeof statsObj !== 'object') { container.innerHTML = ''; return; }
+    var names = Object.keys(statsObj);
+    // Sort by points descending
+    names.sort(function(a, b) { return (statsObj[b].pts || 0) - (statsObj[a].pts || 0); });
+    var html = '';
+    for (var i = 0; i < names.length; i++) {
+      html += renderSpecPlayerRow(names[i], statsObj[names[i]]);
+    }
+    container.innerHTML = html;
+  }
+
+  function renderSportCard(name, stats, teamNameStr, ourScore, theirScore) {
+    var photo = stats.photo || '';
+    var jersey = stats.jersey || '';
+    var headerHtml;
+    if (photo) {
+      headerHtml = '<img src="' + photo + '" alt=""><div class="card-gradient-overlay"></div>';
+    } else {
+      headerHtml = '<div class="card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>';
+    }
+    var resultLabel, resultClass;
+    if (ourScore > theirScore) { resultLabel = 'WIN'; resultClass = 'win'; }
+    else if (ourScore < theirScore) { resultLabel = 'LOSS'; resultClass = 'loss'; }
+    else { resultLabel = 'TIE'; resultClass = 'tie'; }
+
+    var fgPct = (stats.fga||0) > 0 ? Math.round(((stats.fgm||0) / stats.fga) * 100) + '%' : '-';
+    var minSec = stats.min || 0;
+    var minStr = Math.floor(minSec / 60) + ':' + (minSec % 60 < 10 ? '0' : '') + (minSec % 60);
+
+    return '<div class="sport-card">' +
+      '<div class="sport-card-header">' + headerHtml +
+        (jersey ? '<div class="sport-card-jersey">#' + escHtml(jersey) + '</div>' : '') +
+      '</div>' +
+      '<div class="sport-card-body">' +
+        '<div class="sport-card-name">' + escHtml(name) + '</div>' +
+        '<div class="sport-card-team">' + escHtml(teamNameStr) + '</div>' +
+        '<div class="sport-card-pts">' + (stats.pts || 0) + '</div>' +
+        '<div class="sport-card-pts-label">POINTS</div>' +
+        '<div class="sport-card-stats">' +
+          '<div class="card-stat"><div class="card-stat-val">' + (stats.reb||0) + '</div><div class="card-stat-label">REB</div></div>' +
+          '<div class="card-stat"><div class="card-stat-val">' + (stats.ast||0) + '</div><div class="card-stat-label">AST</div></div>' +
+          '<div class="card-stat"><div class="card-stat-val">' + (stats.stl||0) + '</div><div class="card-stat-label">STL</div></div>' +
+          '<div class="card-stat"><div class="card-stat-val">' + (stats.blk||0) + '</div><div class="card-stat-label">BLK</div></div>' +
+          '<div class="card-stat"><div class="card-stat-val">' + fgPct + '</div><div class="card-stat-label">FG%</div></div>' +
+          '<div class="card-stat"><div class="card-stat-val">' + minStr + '</div><div class="card-stat-label">MIN</div></div>' +
+        '</div>' +
+        '<div class="sport-card-result">' +
+          '<div class="sport-card-result-score">' + ourScore + ' - ' + theirScore + '</div>' +
+          '<div class="sport-card-result-label ' + resultClass + '">' + resultLabel + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sport-card-watermark">FULLCOURT</div>' +
+    '</div>';
+  }
+
   function renderSpectatorView(game, plays) {
     var statusEl = document.getElementById('spec-status');
     var quarterEl = document.getElementById('spec-quarter');
@@ -4539,16 +5258,37 @@
       awayLogoEl.innerHTML = '';
     }
 
-    // Scoring plays feed
+    // Clock display
+    var clockDisplay = document.getElementById('spec-clock-display');
+    var clockTime = document.getElementById('spec-clock-time');
+    if (game.clock_seconds !== undefined && game.clock_seconds !== null && game.status !== 'final') {
+      clockDisplay.style.display = '';
+      var cm = Math.floor(game.clock_seconds / 60);
+      var cs = game.clock_seconds % 60;
+      clockTime.textContent = cm + ':' + (cs < 10 ? '0' : '') + cs;
+    } else {
+      clockDisplay.style.display = 'none';
+    }
+
+    // Live player stats for both teams
+    var homeName = game.home_team_name || 'HOME';
+    var awayName = game.away_team_name || 'AWAY';
+    document.getElementById('spec-home-team-header').textContent = homeName;
+    document.getElementById('spec-away-team-header').textContent = awayName;
+    renderSpecTeamPlayers('spec-home-players', game.home_player_stats);
+    renderSpecTeamPlayers('spec-away-players', game.away_player_stats);
+
+    // Scoring plays feed (show most recent 10)
     if (plays.length === 0) {
       feedEmpty.style.display = '';
       feedList.innerHTML = '';
     } else {
       feedEmpty.style.display = 'none';
       var html = '';
-      for (var i = 0; i < plays.length; i++) {
+      var maxPlays = Math.min(plays.length, 10);
+      for (var i = 0; i < maxPlays; i++) {
         var p = plays[i];
-        var teamLabel = p.team_side === 'home' ? (game.home_team_name || 'Home') : (game.away_team_name || 'Away');
+        var teamLabel = p.team_side === 'home' ? homeName : awayName;
         html += '<div class="spec-play">' +
           '<div class="spec-play-pts">+' + p.points + '</div>' +
           '<div class="spec-play-detail">' + escHtml(p.player_name) + ' <span style="color:var(--text-3);font-size:0.65rem">(' + escHtml(teamLabel) + ')</span></div>' +
@@ -4557,15 +5297,31 @@
       feedList.innerHTML = html;
     }
 
-    // Post-game summary: show both teams' player stats when game is final
+    // Post-game: show sports cards for all players
     var specSummary = document.getElementById('spec-summary');
-    var specHomeStats = document.getElementById('spec-home-stats');
-    var specAwayStats = document.getElementById('spec-away-stats');
+    var specCardsGrid = document.getElementById('spec-cards-grid');
 
     if (game.status === 'final') {
       specSummary.style.display = '';
-      specHomeStats.innerHTML = renderTeamStatsTable(game.home_player_stats, game.home_team_name || 'Home');
-      specAwayStats.innerHTML = renderTeamStatsTable(game.away_player_stats, game.away_team_name || 'Away');
+      document.getElementById('spec-live-stats').style.display = 'none';
+      var cardsHtml = '';
+      var hScore = game.home_score || 0;
+      var aScore = game.away_score || 0;
+      if (game.home_player_stats) {
+        var hNames = Object.keys(game.home_player_stats);
+        hNames.sort(function(a, b) { return (game.home_player_stats[b].pts||0) - (game.home_player_stats[a].pts||0); });
+        for (var hi = 0; hi < hNames.length; hi++) {
+          cardsHtml += renderSportCard(hNames[hi], game.home_player_stats[hNames[hi]], homeName, hScore, aScore);
+        }
+      }
+      if (game.away_player_stats) {
+        var aN = Object.keys(game.away_player_stats);
+        aN.sort(function(a, b) { return (game.away_player_stats[b].pts||0) - (game.away_player_stats[a].pts||0); });
+        for (var ai = 0; ai < aN.length; ai++) {
+          cardsHtml += renderSportCard(aN[ai], game.away_player_stats[aN[ai]], awayName, aScore, hScore);
+        }
+      }
+      specCardsGrid.innerHTML = cardsHtml;
     } else {
       specSummary.style.display = 'none';
     }
@@ -4911,8 +5667,8 @@
         }
       }
 
-      // If game is active and this is a court player, add points badge and tap-to-score
-      if (gameCode && cls === 'court-p') {
+      // If game is active, add points badge and tap-to-score for court and deck players
+      if (gameCode) {
         var pts = (playerStats[names[i]] && playerStats[names[i]].pts) || 0;
         if (pts > 0) {
           var badge = document.createElement('div');
@@ -4936,6 +5692,58 @@
     displayTeamSubtitle.style.display = teamSubtitle ? '' : 'none';
   }
 
+  function renderScorekeeperTeamGrid(gridId, rosterList, statsObj, side, cls) {
+    var grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    for (var i = 0; i < rosterList.length; i++) {
+      var pName = rosterList[i];
+      var card = document.createElement('div');
+      card.className = 'p-card ' + cls;
+
+      var num = document.createElement('div');
+      num.className = 'p-num';
+      var jersey = jerseyNumbers[pName];
+      if (jersey) { num.textContent = jersey; }
+      else { var n = i + 1; num.textContent = n < 10 ? '0' + n : n; }
+
+      var nm = document.createElement('div');
+      nm.className = 'p-name';
+      nm.textContent = pName;
+
+      card.appendChild(num);
+      card.appendChild(nm);
+
+      // Points badge
+      var pts = (statsObj[pName] && statsObj[pName].pts) || 0;
+      if (pts > 0) {
+        var badge = document.createElement('div');
+        badge.className = 'p-pts';
+        badge.textContent = pts + ' PTS';
+        card.appendChild(badge);
+      }
+
+      // Foul badge
+      if (statsObj[pName]) {
+        var pf = statsObj[pName].pf || 0;
+        if (pf > 0) {
+          var foulBadge = document.createElement('div');
+          foulBadge.className = 'p-foul-badge';
+          if (pf >= 5) foulBadge.className += ' p-foul-out';
+          else if (pf >= 4) foulBadge.className += ' p-foul-warning';
+          foulBadge.textContent = pf + 'F';
+          card.appendChild(foulBadge);
+        }
+      }
+
+      (function(name, teamSide) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() { openScoringModal(name, teamSide); });
+      })(pName, side);
+
+      grid.appendChild(card);
+    }
+  }
+
   function render() {
     var courtGroup = groups[currentIndex];
     var deckIndex = (currentIndex + 1) % groups.length;
@@ -4947,6 +5755,26 @@
 
     renderPlayerCards(courtPlayers, courtGroup, 'court-p');
     renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+
+    // Scorekeeper: render both teams' player sections
+    var skHomeSec = document.getElementById('sk-home-sec');
+    var skAwaySec = document.getElementById('sk-away-sec');
+    if (isScorekeeper && gameCode) {
+      // Determine real team names (not perspective-swapped)
+      var realHomeName = (gameSide === 'home') ? (teamName || 'HOME') : (awayTeamName || 'HOME');
+      var realAwayName = (gameSide === 'away') ? (teamName || 'AWAY') : (awayTeamName || 'AWAY');
+
+      skHomeSec.style.display = '';
+      skAwaySec.style.display = '';
+      document.getElementById('sk-home-title').textContent = realHomeName.toUpperCase();
+      document.getElementById('sk-away-title').textContent = realAwayName.toUpperCase();
+
+      renderScorekeeperTeamGrid('sk-home-grid', homeRoster, homePlayerStats, 'home', 'court-p');
+      renderScorekeeperTeamGrid('sk-away-grid', awayRoster, awayPlayerStats, 'away', 'deck-p');
+    } else {
+      skHomeSec.style.display = 'none';
+      skAwaySec.style.display = 'none';
+    }
 
     // Game score row (only visible when game is active)
     if (gameCode) {
@@ -5062,7 +5890,7 @@
 
     // Undo button
     var undoBtn = document.getElementById('undo-btn');
-    if (gameCode && undoStack.length > 0 && !isSpectatorView && !isScorekeeper) {
+    if (gameCode && undoStack.length > 0 && !isSpectatorView) {
       undoBtn.style.display = '';
     } else {
       undoBtn.style.display = 'none';
@@ -5091,7 +5919,7 @@
     // Show/hide game score row and opponent scoring panel
     if (gameCode) {
       sbGameScore.style.display = '';
-      oppScoring.style.display = '';
+      oppScoring.style.display = isScorekeeper ? 'none' : '';
       // Start polling opponent's score every 8 seconds
       if (coachPollTimer) clearInterval(coachPollTimer);
       coachPollTimer = setInterval(function() {
@@ -5109,15 +5937,23 @@
       headerActions.innerHTML = '';
       document.querySelector('.header-inner').classList.remove('header-reversed');
       scorekeeperBadge.style.display = '';
+      // Hide court/deck/sub schedule — scorekeeper sees team rosters instead
+      document.getElementById('court-sec').style.display = 'none';
+      document.getElementById('deck-sec').style.display = 'none';
+      document.getElementById('sub-schedule-sec').style.display = 'none';
+      // Show undo button for scorekeeper
+      document.getElementById('undo-btn').style.display = '';
     } else {
       scorekeeperBadge.style.display = 'none';
     }
 
-    // Show scorekeeper share button for coaches with active game
+    // Show share buttons for coaches with active game
     if (gameCode && !isScorekeeper) {
       rotScorekeeperBtn.style.display = '';
+      rotInviteCoachBtn.style.display = '';
     } else {
       rotScorekeeperBtn.style.display = 'none';
+      rotInviteCoachBtn.style.display = 'none';
     }
 
     render();
@@ -5425,6 +6261,10 @@
           if (savedJerseys) {
             try { jerseyNumbers = JSON.parse(savedJerseys) || {}; } catch (e2) { jerseyNumbers = {}; }
           }
+          var savedPhotos = localStorage.getItem(STORAGE_PHOTOS);
+          if (savedPhotos) {
+            try { playerPhotos = JSON.parse(savedPhotos) || {}; } catch (e3) { playerPhotos = {}; }
+          }
           return true; // has roster
         }
       } catch (e) {}
@@ -5481,5 +6321,6 @@
   }
 })();
 </script>
+<div class="stat-flash-overlay" id="stat-flash-overlay"></div>
 </body>
 </html>
