@@ -4069,6 +4069,12 @@
     // Cap undo stack
     if (undoStack.length > 30) undoStack.shift();
 
+    // Visual + haptic + sound feedback
+    var statLabels = { reb: 'REBOUND', ast: 'ASSIST', stl: 'STEAL', blk: 'BLOCK', tov: 'TURNOVER', pf: 'FOUL', miss: 'MISS', ftmiss: 'FT MISS' };
+    var toastMsg = (statLabels[statType] || statType.toUpperCase()) + ' — ' + playerName;
+    var toastType = (statType === 'pf') ? 'foul' : 'stat';
+    showStatToast(toastMsg, toastType);
+
     if (gameCode) syncGameToSupabase();
     render();
   }
