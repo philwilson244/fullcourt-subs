@@ -3960,18 +3960,63 @@
 
   function pollOpponentScore() {
     if (!gameCode) return;
-    sb.from('games').select('home_score,away_score,status').eq('game_code', gameCode).single().then(function(res) {
+    sb.from('games').select('*').eq('game_code', gameCode).single().then(function(res) {
       if (res.error || !res.data) return;
       var g = res.data;
-      // Update the opponent's score (the side we don't control)
+
+      // Update scores from both sides
+      homeScore = g.home_score || 0;
+      awayScore = g.away_score || 0;
+
+      // Sync opponent's team info (e.g. away coach joined after home started)
       if (gameSide === 'home') {
-        awayScore = g.away_score || 0;
+        if (g.away_team_name && g.away_team_name !== awayTeamName) {
+          awayTeamName = g.away_team_name;
+          awayTeamLogo = g.away_team_logo || '';
+        }
       } else {
-        homeScore = g.home_score || 0;
+        if (g.home_team_name && g.home_team_name !== awayTeamName) {
+          awayTeamName = g.home_team_name;
+          awayTeamLogo = g.home_team_logo || '';
+        }
       }
+
+      // Sync opponent's player stats so scoreboard reflects both teams
+      if (gameSide === 'home') {
+        if (g.away_player_stats && typeof g.away_player_stats === 'object') {
+          awayPlayerStats = g.away_player_stats;
+          awayRoster = Object.keys(awayPlayerStats);
+        }
+      } else {
+        if (g.home_player_stats && typeof g.home_player_stats === 'object') {
+          homePlayerStats = g.home_player_stats;
+          homeRoster = Object.keys(homePlayerStats);
+        }
+      }
+
+      // Sync clock state — accept clock updates from the other coach
+      if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
+        // Only update if significantly different (>2s) to avoid jitter
+        if (Math.abs(clockSeconds - g.clock_seconds) > 2 || !clockRunning) {
+          clockSeconds = g.clock_seconds;
+        }
+      }
+      if (g.clock_running && !clockRunning) {
+        startClock();
+      } else if (!g.clock_running && clockRunning) {
+        // Other coach paused the clock — sync it
+        pauseClock();
+        if (g.clock_seconds !== undefined) clockSeconds = g.clock_seconds;
+      }
+
+      // Check for game end from other coach
       if (g.status === 'final' && gameStatus !== 'final') {
         gameStatus = 'final';
+        if (coachPollTimer) { clearInterval(coachPollTimer); coachPollTimer = null; }
+        showSummary();
+        return;
       }
+
       render();
     });
   }
@@ -5101,7 +5146,7 @@
         if (gRes.data.status === 'live') {
           spectatorPollTimer = setInterval(function() {
             pollSpectatorUpdate(code);
-          }, 5000);
+          }, 3000);
         }
       });
     });
@@ -5920,11 +5965,11 @@
     if (gameCode) {
       sbGameScore.style.display = '';
       oppScoring.style.display = isScorekeeper ? 'none' : '';
-      // Start polling opponent's score every 8 seconds
+      // Start polling game state every 3 seconds for live sync
       if (coachPollTimer) clearInterval(coachPollTimer);
       coachPollTimer = setInterval(function() {
         pollOpponentScore();
-      }, 8000);
+      }, 3000);
     }
 
     // Init clock on fresh game start
