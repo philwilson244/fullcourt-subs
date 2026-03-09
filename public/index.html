@@ -167,16 +167,16 @@
 
   /* ── Rotation Action Row ── */
   .rotation-actions {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
-    padding: 20px 0 100px;
+    padding: 20px 16px 100px;
   }
   .rot-action-btn {
     background: none;
     border: 1px solid var(--border);
     color: var(--text-2);
-    padding: 12px 24px;
+    padding: 14px 12px;
     border-radius: 6px;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.6rem;
@@ -186,7 +186,8 @@
     cursor: pointer;
     transition: all 0.15s;
     -webkit-tap-highlight-color: transparent;
-    flex: 1;
+    text-align: center;
+    width: 100%;
   }
   .rot-action-btn:active {
     background: var(--surface-2);
