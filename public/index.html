@@ -2656,18 +2656,31 @@
     background: rgba(255,107,43,0.08);
   }
 
-  .scorekeeper-badge {
+  .role-badge {
     text-align: center;
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.5rem;
+    font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 2px;
-    color: var(--cyan);
-    padding: 6px;
+    padding: 8px 12px;
     margin: 0 20px 8px;
-    border: 1px solid rgba(255,107,43,0.2);
-    border-radius: 4px;
-    background: rgba(255,107,43,0.04);
+    border-radius: 6px;
+    display: none;
+  }
+  .role-badge-home {
+    color: var(--orange);
+    border: 1px solid rgba(255,107,43,0.3);
+    background: rgba(255,107,43,0.06);
+  }
+  .role-badge-away {
+    color: var(--cyan);
+    border: 1px solid rgba(0,245,255,0.3);
+    background: rgba(0,245,255,0.06);
+  }
+  .role-badge-scorekeeper {
+    color: var(--pink);
+    border: 1px solid rgba(255,45,120,0.3);
+    background: rgba(255,45,120,0.06);
   }
 
   .hidden { display: none !important; }
@@ -2865,7 +2878,7 @@
     <div class="team-edit-hint">TAP TO EDIT</div>
   </div>
 
-  <div class="scorekeeper-badge" id="scorekeeper-badge" style="display:none">SCOREKEEPER MODE</div>
+  <div class="role-badge" id="role-badge"></div>
 
   <div class="scoreboard">
     <div class="sb-quarter">
@@ -3284,7 +3297,7 @@
   var gameScorekeeperShare = document.getElementById('game-scorekeeper-share');
   var rotInviteCoachBtn = document.getElementById('rot-invite-coach-btn');
   var rotScorekeeperBtn = document.getElementById('rot-scorekeeper-btn');
-  var scorekeeperBadge = document.getElementById('scorekeeper-badge');
+  var roleBadge = document.getElementById('role-badge');
 
   // Join game DOM refs
   var joinGameScreen = document.getElementById('join-game-screen');
@@ -5982,21 +5995,37 @@
     // Init clock on fresh game start
     if (totalSubs === 0 && clockSeconds === 0) initClock();
 
+    // Role badge — always show when in a game
+    roleBadge.style.display = 'none';
+    roleBadge.className = 'role-badge';
+    if (gameCode) {
+      if (isScorekeeper) {
+        roleBadge.textContent = 'SCOREKEEPER';
+        roleBadge.classList.add('role-badge-scorekeeper');
+        roleBadge.style.display = '';
+      } else if (gameSide === 'away') {
+        roleBadge.textContent = 'VISITING COACH';
+        roleBadge.classList.add('role-badge-away');
+        roleBadge.style.display = '';
+      } else {
+        roleBadge.textContent = 'HOME COACH';
+        roleBadge.classList.add('role-badge-home');
+        roleBadge.style.display = '';
+      }
+    }
+
     // Scorekeeper restrictions
     if (isScorekeeper) {
       bottomBar.style.display = 'none';
       document.getElementById('rotation-actions').style.display = 'none';
       headerActions.innerHTML = '';
       document.querySelector('.header-inner').classList.remove('header-reversed');
-      scorekeeperBadge.style.display = '';
       // Hide court/deck/sub schedule — scorekeeper sees team rosters instead
       document.getElementById('court-sec').style.display = 'none';
       document.getElementById('deck-sec').style.display = 'none';
       document.getElementById('sub-schedule-sec').style.display = 'none';
       // Show undo button for scorekeeper
       document.getElementById('undo-btn').style.display = '';
-    } else {
-      scorekeeperBadge.style.display = 'none';
     }
 
     // Show share buttons for coaches with active game
