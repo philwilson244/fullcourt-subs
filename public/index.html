@@ -3197,6 +3197,7 @@
   <div class="spec-watermark">FULLCOURT</div>
 </div>
 
+<div class="stat-flash-overlay" id="stat-flash-overlay"></div>
 <script>
 (function() {
   var STORAGE_ROSTER = 'fullcourt_roster';
@@ -4308,6 +4309,7 @@
   // ── Visual flash overlay ──
   var flashOverlay = document.getElementById('stat-flash-overlay');
   function triggerFlash(type) {
+    if (!flashOverlay) return;
     var color;
     if (type === 'foul') color = 'rgba(255,59,74,0.15)';
     else if (type === 'stat') color = 'rgba(255,45,120,0.1)';
@@ -4337,13 +4339,14 @@
   }
 
   function recordScore(playerName, points, side) {
+    // Update team score
     if (side === 'home') {
       homeScore += points;
     } else {
       awayScore += points;
     }
 
-    // Determine which stats object to update
+    // Update the player's individual stats
     var stats;
     if (isScorekeeper) {
       stats = (side === 'home') ? homePlayerStats : awayPlayerStats;
@@ -4351,33 +4354,27 @@
       stats = playerStats;
     }
 
-    // Update player stats
-    var shouldUpdateStats = isScorekeeper
-      ? (stats[playerName] !== undefined)
-      : (side === (gameSide || 'home') && playerStats[playerName]);
-
-    if (shouldUpdateStats && stats[playerName]) {
+    if (stats && stats[playerName]) {
       var ps = stats[playerName];
       if (ps.fga === undefined) ps.fga = 0;
       if (ps.tpa === undefined) ps.tpa = 0;
       if (ps.fta === undefined) ps.fta = 0;
-      ps.pts += points;
-      if (points === 1) { ps.ftm++; ps.fta++; }
-      else if (points === 2) { ps.fgm++; ps.fga++; }
-      else if (points === 3) { ps.tpm++; ps.tpa++; ps.fga++; }
+      ps.pts = (ps.pts || 0) + points;
+      if (points === 1) { ps.ftm = (ps.ftm||0) + 1; ps.fta++; }
+      else if (points === 2) { ps.fgm = (ps.fgm||0) + 1; ps.fga++; }
+      else if (points === 3) { ps.tpm = (ps.tpm||0) + 1; ps.tpa++; ps.fga++; }
     }
 
     playOrderCounter++;
     var totalExpectedSubs = numQuarters * subsPerQuarter;
     var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
-    var play = {
+    scoringPlays.push({
       team_side: side,
       player_name: playerName,
       points: points,
       quarter: currentQ,
       play_order: playOrderCounter
-    };
-    scoringPlays.push(play);
+    });
 
     // Push to undo stack
     undoStack.push({ type: 'score', playerName: playerName, points: points, side: side, playOrder: playOrderCounter });
@@ -4396,7 +4393,17 @@
       syncGameToSupabase();
     }
 
-    render();
+    // Update scoreboard display immediately
+    try {
+      if (gameCode) {
+        var ourScore = gameSide === 'away' ? awayScore : homeScore;
+        var theirScore = gameSide === 'away' ? homeScore : awayScore;
+        sbHomeScoreVal.textContent = ourScore;
+        sbAwayScoreVal.textContent = theirScore;
+      }
+    } catch(e) {}
+
+    try { render(); } catch(e) {}
   }
 
   var scoringPlayerStatsLine = document.getElementById('scoring-player-stats-line');
@@ -4586,7 +4593,7 @@
       var btn = this;
       var pts = parseInt(btn.getAttribute('data-pts'));
       flashButton(btn);
-      showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS'));
+      try { showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS')); } catch(e) {}
       recordScore(scoringPlayerName, pts, scoringPlayerSide || gameSide || 'home');
       closeScoringModal();
     });
@@ -4599,7 +4606,7 @@
       var stat = btn.getAttribute('data-stat');
       var type = (stat === 'pf') ? 'foul' : 'stat';
       flashButton(btn);
-      showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type);
+      try { showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type); } catch(e) {}
       recordStat(scoringPlayerName, stat);
       updateScoringModalStats();
     });
@@ -5085,10 +5092,10 @@
       roster = activeRoster.slice();
 
       // Rebuild rotation groups and restore state
-      groups = buildGroups(activeRoster);
+      groups = activeRoster.length >= 5 ? buildGroups(activeRoster) : [];
       subHistory = historyData || [];
       totalSubs = subHistory.length;
-      currentIndex = totalSubs % groups.length;
+      currentIndex = groups.length > 0 ? (totalSubs % groups.length) : 0;
 
       // Sync clock from game state
       if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
@@ -5854,16 +5861,19 @@
   }
 
   function render() {
-    var courtGroup = groups[currentIndex];
-    var deckIndex = (currentIndex + 1) % groups.length;
-    var deckGroup = groups[deckIndex];
     var totalExpectedSubs = numQuarters * subsPerQuarter;
     var remaining = totalExpectedSubs - totalSubs;
     var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
     var gameOver = totalSubs >= totalExpectedSubs;
 
-    renderPlayerCards(courtPlayers, courtGroup, 'court-p');
-    renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+    // Court/deck only apply to coaches, not scorekeepers
+    if (!isScorekeeper && groups.length > 0) {
+      var courtGroup = groups[currentIndex] || [];
+      var deckIndex = (currentIndex + 1) % groups.length;
+      var deckGroup = groups[deckIndex] || [];
+      renderPlayerCards(courtPlayers, courtGroup, 'court-p');
+      renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+    }
 
     // Scorekeeper: render both teams' player sections
     var skHomeSec = document.getElementById('sk-home-sec');
@@ -5873,13 +5883,13 @@
       var realHomeName = (gameSide === 'home') ? (teamName || 'HOME') : (awayTeamName || 'HOME');
       var realAwayName = (gameSide === 'away') ? (teamName || 'AWAY') : (awayTeamName || 'AWAY');
 
-      skHomeSec.style.display = '';
-      skAwaySec.style.display = '';
+      skHomeSec.style.display = homeRoster.length > 0 ? '' : 'none';
+      skAwaySec.style.display = awayRoster.length > 0 ? '' : 'none';
       document.getElementById('sk-home-title').textContent = realHomeName.toUpperCase();
       document.getElementById('sk-away-title').textContent = realAwayName.toUpperCase();
 
-      renderScorekeeperTeamGrid('sk-home-grid', homeRoster, homePlayerStats, 'home', 'court-p');
-      renderScorekeeperTeamGrid('sk-away-grid', awayRoster, awayPlayerStats, 'away', 'deck-p');
+      if (homeRoster.length > 0) renderScorekeeperTeamGrid('sk-home-grid', homeRoster, homePlayerStats, 'home', 'court-p');
+      if (awayRoster.length > 0) renderScorekeeperTeamGrid('sk-away-grid', awayRoster, awayPlayerStats, 'away', 'deck-p');
     } else {
       skHomeSec.style.display = 'none';
       skAwaySec.style.display = 'none';
@@ -5945,6 +5955,8 @@
 
     // Build full substitution schedule timeline
     rotationList.innerHTML = '';
+    if (groups.length === 0) { /* no groups — scorekeeper or empty roster */ }
+    else {
     var totalSlots = totalExpectedSubs + 1; // initial + each sub
     for (var s = 0; s < totalSlots; s++) {
       var groupIdx = s % groups.length;
@@ -5983,6 +5995,7 @@
       row.appendChild(namesEl);
       rotationList.appendChild(row);
     }
+    } // end groups.length > 0
 
     // Team fouls display
     var teamFoulsRow = document.getElementById('team-fouls-row');
@@ -6462,6 +6475,5 @@
   }
 })();
 </script>
-<div class="stat-flash-overlay" id="stat-flash-overlay"></div>
 </body>
 </html>
