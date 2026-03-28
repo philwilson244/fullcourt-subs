@@ -3994,50 +3994,69 @@
     sb.from('games').select('*').eq('game_code', gameCode).single().then(function(res) {
       if (res.error || !res.data) return;
       var g = res.data;
+      var changed = false;
 
       // Update scores from both sides
-      homeScore = g.home_score || 0;
-      awayScore = g.away_score || 0;
+      var newHome = g.home_score || 0;
+      var newAway = g.away_score || 0;
+      if (newHome !== homeScore || newAway !== awayScore) {
+        homeScore = newHome;
+        awayScore = newAway;
+        changed = true;
+      }
 
       // Sync opponent's team info (e.g. away coach joined after home started)
       if (gameSide === 'home') {
         if (g.away_team_name && g.away_team_name !== awayTeamName) {
           awayTeamName = g.away_team_name;
           awayTeamLogo = g.away_team_logo || '';
+          changed = true;
         }
       } else {
         if (g.home_team_name && g.home_team_name !== awayTeamName) {
           awayTeamName = g.home_team_name;
           awayTeamLogo = g.home_team_logo || '';
+          changed = true;
         }
       }
 
       // Sync opponent's player stats so scoreboard reflects both teams
       if (gameSide === 'home') {
         if (g.away_player_stats && typeof g.away_player_stats === 'object') {
-          awayPlayerStats = g.away_player_stats;
-          awayRoster = Object.keys(awayPlayerStats);
+          var newStats = JSON.stringify(g.away_player_stats);
+          if (newStats !== JSON.stringify(awayPlayerStats)) {
+            awayPlayerStats = g.away_player_stats;
+            awayRoster = Object.keys(awayPlayerStats);
+            changed = true;
+          }
         }
       } else {
         if (g.home_player_stats && typeof g.home_player_stats === 'object') {
-          homePlayerStats = g.home_player_stats;
-          homeRoster = Object.keys(homePlayerStats);
+          var newStats = JSON.stringify(g.home_player_stats);
+          if (newStats !== JSON.stringify(homePlayerStats)) {
+            homePlayerStats = g.home_player_stats;
+            homeRoster = Object.keys(homePlayerStats);
+            changed = true;
+          }
         }
       }
 
       // Sync clock state — accept clock updates from the other coach
       if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
-        // Only update if significantly different (>2s) to avoid jitter
         if (Math.abs(clockSeconds - g.clock_seconds) > 2 || !clockRunning) {
-          clockSeconds = g.clock_seconds;
+          if (clockSeconds !== g.clock_seconds) {
+            clockSeconds = g.clock_seconds;
+            changed = true;
+          }
         }
       }
       if (g.clock_running && !clockRunning) {
         startClock();
+        changed = true;
       } else if (!g.clock_running && clockRunning) {
-        // Other coach paused the clock — sync it
         pauseClock();
         if (g.clock_seconds !== undefined) clockSeconds = g.clock_seconds;
+        changed = true;
       }
 
       // Check for game end from other coach
@@ -4048,7 +4067,7 @@
         return;
       }
 
-      render();
+      if (changed) render();
     });
   }
 
@@ -4098,12 +4117,6 @@
 
     // Cap undo stack
     if (undoStack.length > 30) undoStack.shift();
-
-    // Visual + haptic + sound feedback
-    var statLabels = { reb: 'REBOUND', ast: 'ASSIST', stl: 'STEAL', blk: 'BLOCK', tov: 'TURNOVER', pf: 'FOUL', miss: 'MISS', ftmiss: 'FT MISS' };
-    var toastMsg = (statLabels[statType] || statType.toUpperCase()) + ' — ' + playerName;
-    var toastType = (statType === 'pf') ? 'foul' : 'stat';
-    showStatToast(toastMsg, toastType);
 
     if (gameCode) syncGameToSupabase();
     render();
