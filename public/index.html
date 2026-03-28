@@ -5883,13 +5883,13 @@
       var realHomeName = (gameSide === 'home') ? (teamName || 'HOME') : (awayTeamName || 'HOME');
       var realAwayName = (gameSide === 'away') ? (teamName || 'AWAY') : (awayTeamName || 'AWAY');
 
-      skHomeSec.style.display = '';
-      skAwaySec.style.display = '';
+      skHomeSec.style.display = homeRoster.length > 0 ? '' : 'none';
+      skAwaySec.style.display = awayRoster.length > 0 ? '' : 'none';
       document.getElementById('sk-home-title').textContent = realHomeName.toUpperCase();
       document.getElementById('sk-away-title').textContent = realAwayName.toUpperCase();
 
-      renderScorekeeperTeamGrid('sk-home-grid', homeRoster, homePlayerStats, 'home', 'court-p');
-      renderScorekeeperTeamGrid('sk-away-grid', awayRoster, awayPlayerStats, 'away', 'deck-p');
+      if (homeRoster.length > 0) renderScorekeeperTeamGrid('sk-home-grid', homeRoster, homePlayerStats, 'home', 'court-p');
+      if (awayRoster.length > 0) renderScorekeeperTeamGrid('sk-away-grid', awayRoster, awayPlayerStats, 'away', 'deck-p');
     } else {
       skHomeSec.style.display = 'none';
       skAwaySec.style.display = 'none';
