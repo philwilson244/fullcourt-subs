@@ -4475,8 +4475,9 @@
       gameCodeLink.textContent = link;
       gameCodeSectionGS.style.display = '';
 
-      // Init player stats and go to rotation
+      // Init player stats and push to DB immediately so scorekeepers can see them
       initPlayerStats();
+      syncGameToSupabase();
       showRotation();
     });
   }
@@ -4763,6 +4764,7 @@
     undoStack = [];
     localStorage.removeItem(STORAGE_GAME_CODE);
     localStorage.removeItem(STORAGE_GAME_SIDE);
+    localStorage.removeItem('fullcourt_is_scorekeeper');
     showSetup();
   });
 
@@ -5111,6 +5113,11 @@
         .order('play_order', { ascending: true }).then(function(pRes) {
         scoringPlays = pRes.data || [];
         playOrderCounter = scoringPlays.length > 0 ? scoringPlays[scoringPlays.length - 1].play_order : 0;
+
+        // Save scorekeeper state so it survives a refresh
+        localStorage.setItem(STORAGE_GAME_CODE, gameCode);
+        localStorage.setItem(STORAGE_GAME_SIDE, gameSide);
+        localStorage.setItem('fullcourt_is_scorekeeper', 'true');
 
         // Clean URL
         var cleanUrl = window.location.origin + window.location.pathname;
@@ -6219,6 +6226,7 @@
     localStorage.removeItem(STORAGE_GAME_SIDE);
     localStorage.removeItem(STORAGE_JERSEY);
     localStorage.removeItem('fullcourt_pending_join');
+    localStorage.removeItem('fullcourt_is_scorekeeper');
     closeResetModal();
     showSetup();
   }
@@ -6431,6 +6439,58 @@
     // Check for scorekeeper mode first (?score=XXXX&side=home in URL)
     if (checkScorekeeperMode()) return;
 
+    // Restore scorekeeper state from a previous session (page refresh)
+    var wasScorekeeperStr = localStorage.getItem('fullcourt_is_scorekeeper');
+    var savedGameCode = localStorage.getItem(STORAGE_GAME_CODE);
+    var savedGameSide = localStorage.getItem(STORAGE_GAME_SIDE);
+    if (wasScorekeeperStr === 'true' && savedGameCode && savedGameSide) {
+      // Re-enter scorekeeper mode as if the URL params were present
+      isScorekeeper = true;
+      gameSide = savedGameSide;
+      gameCode = savedGameCode;
+      gameStatus = 'live';
+      document.querySelector('header').style.display = 'none';
+      sb.from('games').select('*').eq('game_code', savedGameCode).single().then(function(gRes) {
+        if (gRes.error || !gRes.data) {
+          // Game gone — clear scorekeeper state
+          localStorage.removeItem('fullcourt_is_scorekeeper');
+          showSetup();
+          return;
+        }
+        var g = gRes.data;
+        if (g.status === 'final') gameStatus = 'final';
+        numQuarters = g.num_quarters || 4;
+        quarterLength = g.quarter_length || 8;
+        homeScore = g.home_score || 0;
+        awayScore = g.away_score || 0;
+        if (savedGameSide === 'home') {
+          teamName = g.home_team_name || 'Home';
+          teamLogo = g.home_team_logo || '';
+          awayTeamName = g.away_team_name || 'Away';
+          awayTeamLogo = g.away_team_logo || '';
+        } else {
+          teamName = g.away_team_name || 'Away';
+          teamLogo = g.away_team_logo || '';
+          awayTeamName = g.home_team_name || 'Home';
+          awayTeamLogo = g.home_team_logo || '';
+        }
+        homePlayerStats = g.home_player_stats || {};
+        awayPlayerStats = g.away_player_stats || {};
+        homeRoster = Object.keys(homePlayerStats);
+        awayRoster = Object.keys(awayPlayerStats);
+        activeRoster = (savedGameSide === 'home') ? homeRoster.slice() : awayRoster.slice();
+        playerStats = (savedGameSide === 'home') ? homePlayerStats : awayPlayerStats;
+        roster = activeRoster.slice();
+        groups = activeRoster.length >= 5 ? buildGroups(activeRoster) : [];
+        if (g.clock_seconds !== undefined) clockSeconds = g.clock_seconds;
+        if (g.clock_running) startClock();
+        document.querySelector('header').style.display = '';
+        showRotation();
+        startScorekeeperPolling();
+      });
+      return;
+    }
+
     // Check for join mode (?join=XXXX in URL)
     if (checkJoinMode()) return;
 
@@ -6446,8 +6506,6 @@
     }
 
     // Restore saved game state
-    var savedGameCode = localStorage.getItem(STORAGE_GAME_CODE);
-    var savedGameSide = localStorage.getItem(STORAGE_GAME_SIDE);
     if (savedGameCode) {
       gameCode = savedGameCode;
       gameSide = savedGameSide || 'home';
