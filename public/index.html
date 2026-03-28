@@ -6095,13 +6095,15 @@
     var banner = document.getElementById('join-setup-banner');
     if (banner) banner.style.display = 'none';
 
-    // If there's a pending join code, go to join screen instead of attendance
+    // If this coach arrived via an invite link this session, go to join screen
     var pendingJoin = localStorage.getItem('fullcourt_pending_join');
-    if (pendingJoin) {
+    if (pendingJoin && pendingJoinCode) {
       localStorage.removeItem('fullcourt_pending_join');
       showJoinScreen(pendingJoin);
       return;
     }
+    // Clear any stale pending join from a previous session
+    localStorage.removeItem('fullcourt_pending_join');
 
     showAttendance();
   }
