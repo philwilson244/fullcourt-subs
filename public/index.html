@@ -3997,13 +3997,14 @@
       var g = res.data;
       var changed = false;
 
-      // Update scores from both sides
-      var newHome = g.home_score || 0;
-      var newAway = g.away_score || 0;
-      if (newHome !== homeScore || newAway !== awayScore) {
-        homeScore = newHome;
-        awayScore = newAway;
-        changed = true;
+      // Only update the OPPONENT's score from the DB — our own score is
+      // authoritative locally and may not have synced to DB yet
+      if (gameSide === 'home') {
+        var newAway = g.away_score || 0;
+        if (newAway !== awayScore) { awayScore = newAway; changed = true; }
+      } else {
+        var newHome = g.home_score || 0;
+        if (newHome !== homeScore) { homeScore = newHome; changed = true; }
       }
 
       // Sync opponent's team info (e.g. away coach joined after home started)
