@@ -4339,13 +4339,14 @@
   }
 
   function recordScore(playerName, points, side) {
+    // Update team score
     if (side === 'home') {
       homeScore += points;
     } else {
       awayScore += points;
     }
 
-    // Determine which stats object to update
+    // Update the player's individual stats
     var stats;
     if (isScorekeeper) {
       stats = (side === 'home') ? homePlayerStats : awayPlayerStats;
@@ -4353,33 +4354,27 @@
       stats = playerStats;
     }
 
-    // Update player stats
-    var shouldUpdateStats = isScorekeeper
-      ? (stats[playerName] !== undefined)
-      : (side === (gameSide || 'home') && playerStats[playerName]);
-
-    if (shouldUpdateStats && stats[playerName]) {
+    if (stats && stats[playerName]) {
       var ps = stats[playerName];
       if (ps.fga === undefined) ps.fga = 0;
       if (ps.tpa === undefined) ps.tpa = 0;
       if (ps.fta === undefined) ps.fta = 0;
-      ps.pts += points;
-      if (points === 1) { ps.ftm++; ps.fta++; }
-      else if (points === 2) { ps.fgm++; ps.fga++; }
-      else if (points === 3) { ps.tpm++; ps.tpa++; ps.fga++; }
+      ps.pts = (ps.pts || 0) + points;
+      if (points === 1) { ps.ftm = (ps.ftm||0) + 1; ps.fta++; }
+      else if (points === 2) { ps.fgm = (ps.fgm||0) + 1; ps.fga++; }
+      else if (points === 3) { ps.tpm = (ps.tpm||0) + 1; ps.tpa++; ps.fga++; }
     }
 
     playOrderCounter++;
     var totalExpectedSubs = numQuarters * subsPerQuarter;
     var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
-    var play = {
+    scoringPlays.push({
       team_side: side,
       player_name: playerName,
       points: points,
       quarter: currentQ,
       play_order: playOrderCounter
-    };
-    scoringPlays.push(play);
+    });
 
     // Push to undo stack
     undoStack.push({ type: 'score', playerName: playerName, points: points, side: side, playOrder: playOrderCounter });
@@ -4398,7 +4393,17 @@
       syncGameToSupabase();
     }
 
-    render();
+    // Update scoreboard display immediately
+    try {
+      if (gameCode) {
+        var ourScore = gameSide === 'away' ? awayScore : homeScore;
+        var theirScore = gameSide === 'away' ? homeScore : awayScore;
+        sbHomeScoreVal.textContent = ourScore;
+        sbAwayScoreVal.textContent = theirScore;
+      }
+    } catch(e) {}
+
+    try { render(); } catch(e) {}
   }
 
   var scoringPlayerStatsLine = document.getElementById('scoring-player-stats-line');
@@ -4588,7 +4593,7 @@
       var btn = this;
       var pts = parseInt(btn.getAttribute('data-pts'));
       flashButton(btn);
-      showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS'));
+      try { showStatToast(scoreLabels[pts] || ('+' + pts + ' PTS')); } catch(e) {}
       recordScore(scoringPlayerName, pts, scoringPlayerSide || gameSide || 'home');
       closeScoringModal();
     });
@@ -4601,7 +4606,7 @@
       var stat = btn.getAttribute('data-stat');
       var type = (stat === 'pf') ? 'foul' : 'stat';
       flashButton(btn);
-      showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type);
+      try { showStatToast(statLabels[stat] || ('+1 ' + stat.toUpperCase()), type); } catch(e) {}
       recordStat(scoringPlayerName, stat);
       updateScoringModalStats();
     });
