@@ -4041,19 +4041,18 @@
         }
       }
 
-      // Sync clock state — accept clock updates from the other coach
-      if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
-        if (Math.abs(clockSeconds - g.clock_seconds) > 2 || !clockRunning) {
-          if (clockSeconds !== g.clock_seconds) {
-            clockSeconds = g.clock_seconds;
-            changed = true;
-          }
+      // Sync clock state — only accept updates when we're not actively running the clock
+      if (!clockRunning) {
+        if (g.clock_seconds !== undefined && g.clock_seconds !== null && clockSeconds !== g.clock_seconds) {
+          clockSeconds = g.clock_seconds;
+          changed = true;
         }
-      }
-      if (g.clock_running && !clockRunning) {
-        startClock();
-        changed = true;
-      } else if (!g.clock_running && clockRunning) {
+        if (g.clock_running) {
+          startClock();
+          changed = true;
+        }
+      } else if (!g.clock_running) {
+        // Other coach paused — stop our clock too
         pauseClock();
         if (g.clock_seconds !== undefined) clockSeconds = g.clock_seconds;
         changed = true;
@@ -5782,12 +5781,10 @@
       // If game is active, add points badge and tap-to-score for court and deck players
       if (gameCode) {
         var pts = (playerStats[names[i]] && playerStats[names[i]].pts) || 0;
-        if (pts > 0) {
-          var badge = document.createElement('div');
-          badge.className = 'p-pts';
-          badge.textContent = pts + ' PTS';
-          card.appendChild(badge);
-        }
+        var badge = document.createElement('div');
+        badge.className = 'p-pts';
+        badge.textContent = pts + ' PTS';
+        card.appendChild(badge);
         (function(name) {
           card.style.cursor = 'pointer';
           card.addEventListener('click', function() { openScoringModal(name); });
