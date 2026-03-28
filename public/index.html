@@ -5092,10 +5092,10 @@
       roster = activeRoster.slice();
 
       // Rebuild rotation groups and restore state
-      groups = buildGroups(activeRoster);
+      groups = activeRoster.length >= 5 ? buildGroups(activeRoster) : [];
       subHistory = historyData || [];
       totalSubs = subHistory.length;
-      currentIndex = totalSubs % groups.length;
+      currentIndex = groups.length > 0 ? (totalSubs % groups.length) : 0;
 
       // Sync clock from game state
       if (g.clock_seconds !== undefined && g.clock_seconds !== null) {
@@ -5861,16 +5861,19 @@
   }
 
   function render() {
-    var courtGroup = groups[currentIndex];
-    var deckIndex = (currentIndex + 1) % groups.length;
-    var deckGroup = groups[deckIndex];
     var totalExpectedSubs = numQuarters * subsPerQuarter;
     var remaining = totalExpectedSubs - totalSubs;
     var currentQ = totalSubs === 0 ? 1 : getSubQuarter(totalSubs);
     var gameOver = totalSubs >= totalExpectedSubs;
 
-    renderPlayerCards(courtPlayers, courtGroup, 'court-p');
-    renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+    // Court/deck only apply to coaches, not scorekeepers
+    if (!isScorekeeper && groups.length > 0) {
+      var courtGroup = groups[currentIndex] || [];
+      var deckIndex = (currentIndex + 1) % groups.length;
+      var deckGroup = groups[deckIndex] || [];
+      renderPlayerCards(courtPlayers, courtGroup, 'court-p');
+      renderPlayerCards(deckPlayers, deckGroup, 'deck-p');
+    }
 
     // Scorekeeper: render both teams' player sections
     var skHomeSec = document.getElementById('sk-home-sec');
@@ -5952,6 +5955,8 @@
 
     // Build full substitution schedule timeline
     rotationList.innerHTML = '';
+    if (groups.length === 0) { /* no groups — scorekeeper or empty roster */ }
+    else {
     var totalSlots = totalExpectedSubs + 1; // initial + each sub
     for (var s = 0; s < totalSlots; s++) {
       var groupIdx = s % groups.length;
@@ -5990,6 +5995,7 @@
       row.appendChild(namesEl);
       rotationList.appendChild(row);
     }
+    } // end groups.length > 0
 
     // Team fouls display
     var teamFoulsRow = document.getElementById('team-fouls-row');
