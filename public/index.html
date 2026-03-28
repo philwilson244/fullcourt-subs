@@ -3197,6 +3197,7 @@
   <div class="spec-watermark">FULLCOURT</div>
 </div>
 
+<div class="stat-flash-overlay" id="stat-flash-overlay"></div>
 <script>
 (function() {
   var STORAGE_ROSTER = 'fullcourt_roster';
@@ -4308,6 +4309,7 @@
   // ── Visual flash overlay ──
   var flashOverlay = document.getElementById('stat-flash-overlay');
   function triggerFlash(type) {
+    if (!flashOverlay) return;
     var color;
     if (type === 'foul') color = 'rgba(255,59,74,0.15)';
     else if (type === 'stat') color = 'rgba(255,45,120,0.1)';
@@ -6462,6 +6464,5 @@
   }
 })();
 </script>
-<div class="stat-flash-overlay" id="stat-flash-overlay"></div>
 </body>
 </html>
