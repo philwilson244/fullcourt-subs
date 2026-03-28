@@ -3997,14 +3997,14 @@
       var g = res.data;
       var changed = false;
 
-      // Only update the OPPONENT's score from the DB — our own score is
-      // authoritative locally and may not have synced to DB yet
-      if (gameSide === 'home') {
-        var newAway = g.away_score || 0;
-        if (newAway !== awayScore) { awayScore = newAway; changed = true; }
-      } else {
+      // Coaches are the local authority for BOTH scores (own + opponent manual).
+      // Only accept score updates from DB for scorekeepers and spectators,
+      // since coaches write both scores via syncGameToSupabase().
+      if (isScorekeeper || isSpectatorView) {
         var newHome = g.home_score || 0;
+        var newAway = g.away_score || 0;
         if (newHome !== homeScore) { homeScore = newHome; changed = true; }
+        if (newAway !== awayScore) { awayScore = newAway; changed = true; }
       }
 
       // Sync opponent's team info (e.g. away coach joined after home started)
