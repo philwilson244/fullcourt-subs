@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Basketball substitution rotation app",
   "scripts": {
-    "start": "serve public -l $PORT"
+    "start": "node server.js"
   },
   "dependencies": {
-    "serve": "^14.2.4"
+    "express": "^4.21.0"
   }
 }
